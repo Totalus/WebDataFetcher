@@ -18,9 +18,11 @@
     "build-image": "docker build -t server-template-img ."
   },
   "dependencies": {
+    "@types/js-yaml": "^4.0.5",
     "@types/pino": "^6.3.11",
     "@types/pino-http": "^5.4.2",
     "express": "^4.17.1",
+    "js-yaml": "^4.1.0",
     "jsdom": "^19.0.0",
     "pino": "^6.13.0",
     "pino-http": "^5.6.0",

@@ -1,5 +1,7 @@
 
 import * as yargs from 'yargs';
+import * as yaml from 'js-yaml';
+import * as fs from 'fs';
 
 const argv = yargs
 	.option('config', {
@@ -12,8 +14,9 @@ const argv = yargs
 
 class Scraper {
 
-	constructor() {}
-	// storages : Output[]
+	constructor() {
+
+	}
 
 	addJob(name: string, options: any) : boolean {
 		return true;
@@ -23,7 +26,7 @@ class Scraper {
 		return [];
 	}
 	
-	registerOutput(name: string, options: any) {
+	registerDestination(name: string, options: any) {
 		
 	}
 	
@@ -34,10 +37,22 @@ const scraper = new Scraper()
 
 if(!!argv.config) {
 	// Load configuration
+	const doc = yaml.load(fs.readFileSync(argv.config, 'utf-8')) as Record<string, any>;
 
-	// Create outputs
+	console.log(doc);
+
+	// Register destinations
+	if(!!doc?.destination) {
+		Object.entries(doc.destination).forEach(([name, opt]) => {
+			scraper.registerDestination(name, opt);
+		});
+	}
 
 	// Create jobs
-
+	if(!!doc?.jobs) {
+		Object.entries(doc.jobs).forEach(([name, opt]) => {
+			scraper.addJob(name, opt);
+		});
+	}
 }
 
