@@ -1,0 +1,8 @@
+# All files that are not useful to build the docker image can be
+# specified here to reduce the bundle sent to the docker deamon
+
+.git/
+node_modules/
+.env
+.env.production
+.gitignore

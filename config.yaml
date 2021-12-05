@@ -1,0 +1,55 @@
+# Configuration file that defines the fetched data
+
+
+# Configure the destinations (outputs)
+destinations:
+
+  # InfluxDB Storage
+  influxdb1:
+    type: influxdb
+    url: influxdb
+    port: 8086
+    token: someToken
+    defaultBucket: someBucketToUse
+
+  # MongoDB storage
+  mongo1:
+    type: mongodb
+    url: mongoUrl
+    port: 6079
+    user: admin
+    pass: userPass
+
+logLevel: debug
+
+# Scraping jobs
+jobs:
+  myJob: # Job Name
+    schedule:
+      interval: 24h
+      # cron: "* 0 . ."
+
+    # What to scrape
+    inputs:
+      # Use a json or yaml file as template
+      - url: <url to scrape>
+        template: "templateFile.json"
+
+      # With embedded template
+      - url: "http://the.url.to.scrape.com/somePath"
+        template:
+          myValue: h1
+          mySecondValue: "#123"
+
+    outputs:
+      - to: influxdb1 # Defined in destinations
+        tags:         # Tags to apply
+          job: myJob  # Tag values MUST be string
+        fields:       # Fields to apply
+          myField: 123  # Field values can be floats or strings
+          myStringField: hello world
+        transform: # Transformations that can be applied on the data
+          # Convert the type to float
+          - target: myValue
+            type: float
+        
