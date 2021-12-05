@@ -6,7 +6,8 @@
 		"preserveConstEnums": true,
 		"sourceMap": true,
 		"outDir": "dist",
-		"lib": ["dom", "ES2020"]
+		"lib": ["dom", "ES2020"],
+		"allowSyntheticDefaultImports": true
 	},
 	"inlclude":["src/**/*"],
 	"exclude": ["node_modules"]
