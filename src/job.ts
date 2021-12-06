@@ -1,5 +1,6 @@
 
 import { CronJob } from 'cron';
+import { applyTransformation } from './transform/transformations';
 
 export interface JobOptions {
 	schedule: {
@@ -19,12 +20,19 @@ export interface JobOptions {
 
 interface InputConfig {
 	url: string,
-	template: string | Record<string, any>
+	template: string | Record<string, any>,
+	transforms?: Array<Transformation>
 }
 
 interface OutputConfig {
 	to: string,
 	[key: string]: any
+}
+
+interface Transformation {
+	name: string,
+	target?: string,
+	options: Record<string, any>
 }
 
 export class Job {
@@ -65,7 +73,8 @@ export class Job {
 	}
 
 	start() {
-		this.cronJob.start();
+		// this.cronJob.start();
+		this.run();
 	}
 
 	/** Execute the job */
@@ -73,9 +82,18 @@ export class Job {
 		console.log("Running job", this.jobName)
 		
 		// Fetch the input
-		const data : Record<string, any> = {hello: "world"};
+		let data : Record<string, any> = {hello: "world $ $ $", price: "10.5 $"};
 
-		// Apply input transform
+		// Apply input transforms
+		this.input?.transforms?.forEach(t => {
+			if(!!t.target)
+				data[t.target] = applyTransformation(t.name, t.options, data[t.target]);
+			else {
+				Object.keys(data).forEach(key =>{
+					data[key] = applyTransformation(t.name, t.options, data[key]);
+				});
+			}
+		});
 
 		// Add timestamp to data
 		data["__timestamp_ms"] = Math.floor(new Date().getTime())
