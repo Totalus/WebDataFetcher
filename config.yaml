@@ -3,6 +3,10 @@
 
 # Configure the destinations (outputs)
 destinations:
+  
+  # Print to console
+  console:
+    type: console
 
   # InfluxDB Storage
   influxdb1:
@@ -26,20 +30,20 @@ logLevel: debug
 jobs:
   myJob: # Job Name
     schedule:
-      interval: 24h
-      # cron: "* 0 . ."
+      # interval: 24h
+      cron: "* * * * *"
 
     # What to scrape
-    inputs:
+    input:
       # Use a json or yaml file as template
-      - url: <url to scrape>
-        template: "templateFile.json"
+      url: <url to scrape>
+      template: "templateFile.json"
 
       # With embedded template
-      - url: "http://the.url.to.scrape.com/somePath"
-        template:
-          myValue: h1
-          mySecondValue: "#123"
+      # url: "http://the.url.to.scrape.com/somePath"
+      # template:
+      #   myValue: h1
+      #   mySecondValue: "#123"
 
     outputs:
       - to: influxdb1 # Defined in destinations
