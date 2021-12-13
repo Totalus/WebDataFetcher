@@ -7,7 +7,7 @@ export class Output {
 		this.name = name;
 	}
 
-	async write(jobName: string, data: Record<string, any>, options: Record<string, any>) : Promise<boolean> {
+	async write(data: Record<string, any>, options: Record<string, any>) : Promise<boolean> {
 		return true;
 	}
 }

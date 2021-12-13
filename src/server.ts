@@ -5,6 +5,7 @@ import * as fs from 'fs';
 import { Job } from './job';
 import { ConsoleOutput } from './destinations/console';
 import { Output } from './destinations/output';
+import { InfluxdbOutput } from './destinations/influxdb';
 
 const argv = yargs
 	.option('config', {
@@ -45,12 +46,21 @@ class Scraper {
 		}
 	}
 	
-	registerDestination(name: string, options: any) {
-		const {type} = options;
+	registerDestination(name: string, config: any) {
+		const {type, options} = config;
 
 		if(type == 'console') {
 			console.log(`registerDestination '${name}'`);
 			this.destinations[name] = new ConsoleOutput(name);
+		}
+		else if(type == 'influxdb') {
+			try {
+				this.destinations[name] = new InfluxdbOutput(name, options);
+				console.log(`registerDestination '${name}'`);
+			}
+			catch(error) {
+				console.log(`error: ${error}`);
+			}
 		}
 		else {
 			console.error(`Invalid destination type '${type}' for destination '${name}'`)
@@ -66,7 +76,7 @@ class Scraper {
 		}
 
 		console.log("Writing data to", destinationName);
-		return target.write(jobName, data, options);
+		return target.write(data, options);
 	}
 }
 
@@ -93,9 +103,6 @@ if(!!argv.config) {
 	}
 }
 
-// function shutdown() {
-// 	scraper.shutdown()
-// }
 
 // process.on('SIGTERM', shutdown);
 // process.on('SIGINT', shutdown);
