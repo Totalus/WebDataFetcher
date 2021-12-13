@@ -2,7 +2,7 @@ FROM node:16-alpine
 
 WORKDIR	/app
 
-run apk --no-cache add bash
+# run apk --no-cache add bash
 
 # add `/app/node_modules/.bin` to $PATH
 ENV PATH /app/node_modules/.bin:$PATH
@@ -15,8 +15,7 @@ COPY yarn.lock yarn.lock
 RUN yarn install --frozen-lockfile
 
 COPY dist/ /app/
-
-EXPOSE 80
+COPY myConfig.yaml /app/config.yaml
 
 # CMD ["/bin/bash"]
-CMD ["node", "server.js"]
+CMD ["node", "server.js", "--config", "config.yaml"]
