@@ -2,6 +2,7 @@
 import { CronJob } from 'cron';
 import { applyTransformation } from './transform/transformations';
 import { scrapeUrl } from './scraper';
+import cloneDeep from 'lodash/cloneDeep';
 
 export interface JobOptions {
 	schedule: {
@@ -27,7 +28,8 @@ interface InputConfig {
 
 interface OutputConfig {
 	to: string,
-	[key: string]: any
+	[key: string]: any,
+	transforms?: Array<Transformation>
 }
 
 interface Transformation {
@@ -35,6 +37,28 @@ interface Transformation {
 	target?: string,
 	options: Record<string, any>
 }
+
+/** Apply the given transformations to the data */
+function applyTransforms(data: Record<string, any>, transforms: Array<Transformation>) : any {
+	let cloned = cloneDeep(data); // Create a copy to avoid affecting the original
+
+	// Apply each transformation in the list
+	transforms.forEach(t => {
+
+		// If target is specified, apply only to the given target
+		// TODO: find a better way to match the target
+		if(!!t.target && !!cloned[t.target])
+			cloned[t.target] = applyTransformation(t.name, t.options, cloned[t.target]);
+		else {
+			Object.keys(cloned).forEach(key =>{
+				cloned[key] = applyTransformation(t.name, t.options, cloned[key]);
+			});
+		}
+	});
+
+	return cloned;
+}
+
 
 export class Job {
 
@@ -88,11 +112,18 @@ export class Job {
 		// Add metadata to the resulting data
 		data["__timestamp_ms"] = Math.floor(new Date().getTime())
 
+		// Apply input transforms if any
+		if(!!this.input.transforms)
+			data = applyTransforms(data, this.input.transforms)
+
 		// console.log(this.outputs)
 		this.outputs.forEach(o => {
-			// TODO: apply output transform
+			
+			// Apply output transforms if any, and do it only for this output
+			let _data = !!o.transforms ? applyTransforms(data, o.transforms) : data;
 
-			this.outputTo(o.to, this.jobName, data, {});
+			// Send the result to the destionation
+			this.outputTo(o.to, this.jobName, _data, {});
 		});
 	}
 
