@@ -18,14 +18,17 @@
     "build-image": "docker build -t server-template-img ."
   },
   "dependencies": {
+    "@influxdata/influxdb-client": "^1.21.0",
     "@types/cron": "^1.7.3",
     "@types/js-yaml": "^4.0.5",
+    "@types/lodash": "^4.14.178",
     "@types/pino": "^6.3.11",
     "@types/pino-http": "^5.4.2",
     "cron": "^1.8.2",
     "express": "^4.17.1",
     "js-yaml": "^4.1.0",
     "jsdom": "^19.0.0",
+    "lodash": "^4.17.21",
     "pino": "^6.13.0",
     "pino-http": "^5.6.0",
     "yargs": "^17.3.0"
