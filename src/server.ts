@@ -80,15 +80,15 @@ if(!!argv.config) {
 
 	// Register destinations
 	if(!!doc?.destinations) {
-		Object.entries(doc.destinations).forEach(([name, opt]) => {
-			scraper.registerDestination(name, opt);
+		Object.entries(doc.destinations).forEach(([name, config]) => {
+			scraper.registerDestination(name, config);
 		});
 	}
 
 	// Create jobs
 	if(!!doc?.jobs) {
-		Object.entries(doc.jobs).forEach(([name, opt]) => {
-			scraper.addJob(name, opt);
+		Object.entries(doc.jobs).forEach(([name, config]) => {
+			scraper.addJob(name, config);
 		});
 	}
 }
