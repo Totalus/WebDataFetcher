@@ -99,8 +99,8 @@ export class Job {
 	}
 
 	start() {
-		// this.cronJob.start();
-		this.run();
+		this.cronJob.start();
+		this.run(); // To run the job directly on start (for testing)
 	}
 
 	/** Execute the job */

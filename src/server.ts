@@ -78,6 +78,10 @@ class Scraper {
 		console.log("Writing data to", destinationName);
 		return target.write(data, options);
 	}
+
+	shutdown() {
+		Object.keys(this.jobs).forEach(key => this.jobs[key].stop());
+	}
 }
 
 const scraper = new Scraper()
@@ -104,5 +108,9 @@ if(!!argv.config) {
 }
 
 
-// process.on('SIGTERM', shutdown);
-// process.on('SIGINT', shutdown);
+function shutdown() {
+	scraper.shutdown();
+}
+
+process.on('SIGTERM', shutdown);
+process.on('SIGINT', shutdown);
