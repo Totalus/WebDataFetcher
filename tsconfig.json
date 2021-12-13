@@ -7,8 +7,9 @@
 		"sourceMap": true,
 		"outDir": "dist",
 		"lib": ["dom", "ES2020"],
-		"allowSyntheticDefaultImports": true
+		"allowSyntheticDefaultImports": true,
+		"allowJs": true
 	},
-	"inlclude":["src/**/*"],
+	"include":["src/**/*"],
 	"exclude": ["node_modules"]
 }

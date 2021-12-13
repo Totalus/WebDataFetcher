@@ -1,6 +1,7 @@
 
 import { CronJob } from 'cron';
 import { applyTransformation } from './transform/transformations';
+import { scrapeUrl } from './scraper';
 
 export interface JobOptions {
 	schedule: {
@@ -78,27 +79,15 @@ export class Job {
 	}
 
 	/** Execute the job */
-	run() {
-		console.log("Running job", this.jobName)
+	async run() {
+		console.log(`Running job ${this.jobName}`)
 		
-		// Fetch the input
-		let data : Record<string, any> = {hello: "world $ $ $", price: "10.5 $"};
-
-		// Apply input transforms
-		this.input?.transforms?.forEach(t => {
-			if(!!t.target)
-				data[t.target] = applyTransformation(t.name, t.options, data[t.target]);
-			else {
-				Object.keys(data).forEach(key =>{
-					data[key] = applyTransformation(t.name, t.options, data[key]);
-				});
-			}
-		});
-
-		// Add timestamp to data
+		// Fetch the input (scrape html page)
+		let data : Record<string, any> = await scrapeUrl(this.input.url, this.input.template);
+		
+		// Add metadata to the resulting data
 		data["__timestamp_ms"] = Math.floor(new Date().getTime())
-		// data["__timestamp_s"] = Math.floor(new Date().getTime()/1000.0)
-		
+
 		// console.log(this.outputs)
 		this.outputs.forEach(o => {
 			// TODO: apply output transform
