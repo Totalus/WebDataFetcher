@@ -29,7 +29,8 @@ interface InputConfig {
 interface OutputConfig {
 	to: string,
 	[key: string]: any,
-	transforms?: Array<Transformation>
+	transforms?: Array<Transformation>,
+	options?: Record<string, any>
 }
 
 interface Transformation {
@@ -110,7 +111,8 @@ export class Job {
 		let data : Record<string, any> = await scrapeUrl(this.input.url, this.input.template);
 		
 		// Add metadata to the resulting data
-		data["__timestamp_ms"] = Math.floor(new Date().getTime())
+		data["__timestamp_ms"] = Math.floor(new Date().getTime());
+		data["__job_name"] = this.jobName;
 
 		// Apply input transforms if any
 		if(!!this.input.transforms)
@@ -123,7 +125,7 @@ export class Job {
 			let _data = !!o.transforms ? applyTransforms(data, o.transforms) : data;
 
 			// Send the result to the destionation
-			this.outputTo(o.to, this.jobName, _data, {});
+			this.outputTo(o.to, this.jobName, _data, o.options ?? {});
 		});
 	}
 

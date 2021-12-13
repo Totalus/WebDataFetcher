@@ -1,16 +1,74 @@
+import {InfluxDB, Point, HttpError, WriteApi} from '@influxdata/influxdb-client';
+import { Output } from './output';
 
 export interface InfluxdbOutputOptions {
-	tags: Record<string, string>
-	fields: Record<string, string | Number>
-	target?: string
+	url: string,
+	token: string,
+	organisation: string,
+	bucket: string,
+	defaultTags?: Record<string, string>
 }
 
+export interface InfluxdbWriteOptions {
+	fields: Record<string, string>,
+	tags?: Record<string, string>,
+	measurement?: string,
+}
 
-export class InfluxdbOutput {
-	constructor(options : InfluxdbOutputOptions) {
+export class InfluxdbOutput extends Output {
+	writeApi : WriteApi
+
+	constructor(name: string, options : InfluxdbOutputOptions) {
+		super(name)
+		
+		// Create a write api instance
+		const {url, token, organisation, bucket, defaultTags} = options;
+
+		// Verify required fields
+		if(!url) throw(new Error(`Can't initialize influxdb destination '${name}'. Missing required option 'url'`))
+		if(!token) throw(new Error(`Can't initialize influxdb destination '${name}'. Missing required option 'token'`))
+		if(!organisation) throw(new Error(`Can't initialize influxdb destination '${name}'. Missing required option 'organisation'`))
+		if(!bucket) throw(new Error(`Can't initialize influxdb destination '${name}'. Missing required option 'bucket'`))
+
+		console.log(`Initializing influxdb output ${name} : url=${url} bucket=${bucket} token=${token}`);
+		this.writeApi = new InfluxDB({url, token}).getWriteApi(organisation, bucket, 'ms') // Expect timestamp in seconds
+		
+		if(!defaultTags)
+			return;
+		
+		for(let [key, value] of Object.entries(defaultTags)) {
+			this.writeApi.useDefaultTags({ [key]:value });
+		}
 	}
 
-	write(data: any, options: any) {
-		console.log("TODO: Write to influxdb", data);
+	async write(data: any, options: InfluxdbWriteOptions) : Promise<boolean> {
+
+		const { fields, tags = {}, measurement = "default" } = options;
+
+		let point = new Point(measurement);
+		point.timestamp(data["__timestamp_ms"]);
+		
+		if(!!tags) {
+			Object.entries(tags).forEach( ([key, target]) => {
+				const value = data[target];
+				point.tag(key, value);
+			});
+		}
+
+		if(!!fields) {
+			Object.entries(fields).forEach( ([key, target]) => {
+				const value = data[target];
+				switch(typeof(value)) {
+					case 'string': point.stringField(key, value); break;
+					case 'number': point.floatField(key, value); break;
+				}
+			});
+		}
+		
+		this.writeApi.writePoint(point);
+		this.writeApi.flush()
+		.catch(err => { console.log("Could not write to influxDB", err); })
+		// console.log(point)
+		return true;
 	}
 }
