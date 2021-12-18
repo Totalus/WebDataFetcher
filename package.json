@@ -24,6 +24,7 @@
     "@types/lodash": "^4.14.178",
     "@types/pino": "^6.3.11",
     "@types/pino-http": "^5.4.2",
+    "axios": "^0.24.0",
     "cron": "^1.8.2",
     "express": "^4.17.1",
     "js-yaml": "^4.1.0",

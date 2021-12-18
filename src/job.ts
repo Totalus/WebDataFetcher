@@ -1,28 +1,24 @@
 
 import { CronJob } from 'cron';
 import { applyTransformation } from './transform/transformations';
-import { scrapeUrl } from './scraper';
+import { scrapeHtml } from './scraper';
 import cloneDeep from 'lodash/cloneDeep';
+import axios from 'axios';
+
+type JobData = Record<string, any> | string;
 
 export interface JobOptions {
 	schedule: {
 		cron: string
 	},
 
-	inputs: {
-		url: string,
-		template: string | Record<string, any>
-	},
-
-	outputs: {
-		to: string,
-		[ key: string ]: any
-	}
+	inputs: InputConfig,
+	outputs: OutputConfig
 }
 
 interface InputConfig {
 	url: string,
-	template: string | Record<string, any>,
+	template?: Record<string, any>,
 	transforms?: Array<Transformation>
 }
 
@@ -40,21 +36,30 @@ interface Transformation {
 }
 
 /** Apply the given transformations to the data */
-function applyTransforms(data: Record<string, any>, transforms: Array<Transformation>) : any {
+function applyTransforms(data: JobData, transforms: Array<Transformation>) : any {
 	let cloned = cloneDeep(data); // Create a copy to avoid affecting the original
 
 	// Apply each transformation in the list
-	transforms.forEach(t => {
-
-		// If target is specified, apply only to the given target
-		// TODO: find a better way to match the target
-		if(!!t.target && !!cloned[t.target])
-			cloned[t.target] = applyTransformation(t.name, t.options, cloned[t.target]);
-		else {
-			Object.keys(cloned).forEach(key =>{
-				cloned[key] = applyTransformation(t.name, t.options, cloned[key]);
-			});
+	transforms.forEach( (t, index) => {
+		if(typeof(cloned) === 'string') {
+			if(!!t.target) {
+				console.log(`target specified for a string input value, ignoring target.`);
+			}
+			cloned = applyTransformation(t.name, t.options, cloned);
 		}
+		else if(typeof(cloned) === 'object') {
+			if(!t.target) {
+				console.log("Error: Can't apply transform to json without a specified target");
+				return;
+			}
+			
+			// If target is specified, apply only to the given target
+			// TODO: find a better way to match the target (jsonpath)
+			if(!!cloned[t.target])
+			cloned[t.target] = applyTransformation(t.name, t.options, cloned[t.target]);
+		}
+		else
+		return cloned;
 	});
 
 	return cloned;
@@ -75,7 +80,7 @@ export class Job {
 		console.log(`Creating job '${name}'`);
 		
 		this.outputTo = outputTo;
-		this.jobName = name
+		this.jobName = name;
 
 		const {schedule, input, outputs} = options;
 
@@ -88,7 +93,7 @@ export class Job {
 			throw(new Error(`Undefined 'outputs' field in job '${name}'`));
 		if(!schedule.cron)
 			throw(new Error(`Undefined 'cron' field in job.${name}.schedule`))
-		if(!input.url || !input.template)
+		if(!input.url)
 			throw(new Error(`Undefined 'url' and/or 'template' field in job.${name}.input`))
 					
 		this.input = input;
@@ -105,28 +110,55 @@ export class Job {
 
 	/** Execute the job */
 	async run() {
-		console.log(`Running job ${this.jobName}`)
+		console.log(`INFO [job:${this.jobName}] Running`)
 		
 		// Fetch the input (scrape html page)
-		let data : Record<string, any> = await scrapeUrl(this.input.url, this.input.template);
+		let reply = await axios.get(this.input.url);
+
+		let contentType = null;
+		if(reply.headers['content-type'].includes("text/html"))
+			contentType = 'html';
+		else if(reply.headers['content-type'].includes("application/json"))
+			contentType = 'json';
+		else if(reply.headers['content-type'].includes("text/plain"))
+			contentType = 'text';
+		else if(reply.headers['content-type'].includes("text/csv"))
+			contentType = 'text';
+		else {
+			console.warn(`ERROR [job:${this.jobName}] Unknown content type '${reply.headers['content-type']}'`);
+			return;
+		}
+
+		let data : JobData;
+		if(contentType === 'html' && !!this.input.template)
+			data = scrapeHtml(reply.data, this.input.template);
+		else
+			data = reply.data;
 		
-		// Add metadata to the resulting data
-		data["__timestamp_ms"] = Math.floor(new Date().getTime());
-		data["__job_name"] = this.jobName;
+		//let data : Record<string, any> = await scrapeUrl(this.input.url, this.input.template);
 
 		// Apply input transforms if any
 		if(!!this.input.transforms)
 			data = applyTransforms(data, this.input.transforms)
 
 		// console.log(this.outputs)
-		this.outputs.forEach(o => {
+		this.outputs.forEach( (o, i) => {
 			
 			// Apply output transforms if any, and do it only for this output
 			let _data = !!o.transforms ? applyTransforms(data, o.transforms) : data;
-
+				
 			// Send the result to the destionation
 			this.outputTo(o.to, this.jobName, _data, o.options ?? {});
 		});
+
+		if(typeof(data) != 'object') {
+			console.log(`ERROR [jobs.${this.jobName}] Data is not json at the end of the transformation pipeline`);
+			return;
+		}
+
+		// Add metadata to the resulting data
+		data["__timestamp_ms"] = Math.floor(new Date().getTime());
+		data["__job_name"] = this.jobName;
 	}
 
 	stop() {
