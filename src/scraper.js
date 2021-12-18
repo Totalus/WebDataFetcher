@@ -120,6 +120,14 @@ export function scrapeElement(htmlElement, template) {
 }
 
 
+export function scrapeHtml(html, template) {
+	const dom = new JSDOM(html);
+	
+	if(!dom)
+		return null;
+
+	return scrapeElement(dom.window.document, template);
+}
 
 export function scrapeUrl(url, template) {
 	return new Promise(async (resolve, reject) => {
