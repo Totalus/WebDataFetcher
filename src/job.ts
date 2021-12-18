@@ -19,13 +19,13 @@ export interface JobOptions {
 interface InputConfig {
 	url: string,
 	template?: Record<string, any>,
-	transforms?: Array<Transformation>
+	transformations?: Array<Transformation>
 }
 
 interface OutputConfig {
 	to: string,
 	[key: string]: any,
-	transforms?: Array<Transformation>,
+	transformations?: Array<Transformation>,
 	options?: Record<string, any>
 }
 
@@ -138,14 +138,14 @@ export class Job {
 		//let data : Record<string, any> = await scrapeUrl(this.input.url, this.input.template);
 
 		// Apply input transforms if any
-		if(!!this.input.transforms)
-			data = applyTransforms(data, this.input.transforms)
+		if(!!this.input.transformations)
+			data = applyTransforms(data, this.input.transformations)
 
 		// console.log(this.outputs)
 		this.outputs.forEach( (o, i) => {
 			
 			// Apply output transforms if any, and do it only for this output
-			let _data = !!o.transforms ? applyTransforms(data, o.transforms) : data;
+			let _data = !!o.transformations ? applyTransforms(data, o.transformations) : data;
 				
 			// Send the result to the destionation
 			this.outputTo(o.to, this.jobName, _data, o.options ?? {});
