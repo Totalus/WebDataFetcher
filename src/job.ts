@@ -160,7 +160,7 @@ export class Job {
 			let _data = !!o.transformations ? applyTransforms(`jobs.${this.jobName}.outputs[${i}]`, data, o.transformations) : data;
 
 			// Send the result to the destionation
-			logger.debug(`jobs.${this.jobName}.outputs[${i}]`, `Writing data to destination ${o.to}`);
+			logger.debug(`jobs.${this.jobName}.outputs[${i}]`, `Writing data to destination '${o.to}'`);
 			this.outputTo(o.to, this.jobName, _data, o.options ?? {});
 		});
 
