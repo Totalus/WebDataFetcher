@@ -9,13 +9,14 @@ import { clone } from 'lodash';
 
 type JobData = Record<string, any> | string;
 
-export interface JobOptions {
+export interface JobConfig {
 	schedule: {
 		cron: string
 	},
 
-	inputs: InputConfig,
-	outputs: OutputConfig
+	input: InputConfig,
+	outputs: [OutputConfig],
+	autostart: boolean
 }
 
 interface InputConfig {
@@ -79,13 +80,13 @@ export class Job {
 	/** Callback functions to call for writing data to destination */
 	outputTo : (destinationName: string, jobName: string, data: any, outputOptions: Record<string, any>) => Promise<boolean>
 
-	constructor(name: string, options: Record<string, any>, outputTo: (destinationName: string, jobName: string, data: any, outputOptions: Record<string, any>) => Promise<boolean>) {
+	constructor(name: string, config: JobConfig, outputTo: (destinationName: string, jobName: string, data: any, outputOptions: Record<string, any>) => Promise<boolean>) {
 		logger.info(`jobs.${name}`, `Creating job '${name}'`)
 		
 		this.outputTo = outputTo;
 		this.jobName = name;
 
-		const {schedule, input, outputs} = options;
+		const {schedule, input, outputs} = config;
 
 		// Validate the options
 		if(!schedule)
@@ -98,7 +99,7 @@ export class Job {
 			throw(new Error(`Undefined 'cron' field in job.${name}.schedule`))
 		if(!input.url)
 			throw(new Error(`Undefined 'url' and/or 'template' field in job.${name}.input`))
-					
+
 		this.input = input;
 		this.outputs = outputs;
 		this.run = this.run.bind(this);
@@ -150,7 +151,7 @@ export class Job {
 
 		// Data at the end of input transformations should be JSON
 		if(typeof(data) != 'object') {
-			logger.error(`jobs.${this.jobName}`, "Data must be json at the end of the input transformations.");
+			logger.error(`jobs.${this.jobName}`, "Data must be json at the end of the input transformations");
 			return;
 		}
 
