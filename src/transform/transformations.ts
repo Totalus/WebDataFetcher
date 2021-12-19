@@ -66,10 +66,10 @@ function textToJson(options: TextToJsonOptions, value: any) : any {
 export function applyTransformation(name: string, options: Record<string, any>, value: any) : any {
 	
 	switch(name) {
-		case 'regex_replace': return regexReplace(options as RegexReplaceOptions, value);
+		case 'regexReplace': return regexReplace(options as RegexReplaceOptions, value);
 		case 'replace': return replace(options as ReplaceOptions, value);
 		case 'typecast': return typecast(options as TypecastOptions, value);
-		case 'text_to_json': return textToJson(options as TextToJsonOptions, value);
+		case 'textToJson': return textToJson(options as TextToJsonOptions, value);
 		default: throw new Error(`Unknown transformation '${name}'`);
 	}
 }
