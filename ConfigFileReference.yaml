@@ -1,0 +1,113 @@
+
+
+# Log level (overwrittent by the command line option if specified)
+# Valid levels are : "debug", "info", "warning", "error" or "none" (default to "info" if unspecified)
+logLevel: <log level>
+
+
+# First we define the list of destinations for our data
+destinations:
+
+  <destination name>: # Arbitrary destination name
+    
+    # Type of destinations that we want to configure
+    # Currently available options :
+    # - console : send the output to the console
+    # - influxdb : send the data to an InfluxDB instance
+    type: <type of destionation>
+    
+    # The other field required depend on the type of destination
+
+  # Example for console
+  console:
+    type: console       # Print to console
+                        # Nothing else to specify
+
+  # Example for influxdb
+  influxdb1:
+    type: influxdb                      # The type, here influxdb
+    url: https://<influx host>:8086     # The influxDB host or IP address
+    defaultBucket: <bucket name>        # The default bucket to use for writing the data
+    token: <token>                      # The access token with permission to write to the defaultBucket
+
+
+
+
+# Scraping jobs definitions
+jobs:
+
+  <job name>:                # Arbitrary job name
+
+    # Define when the job will run
+    schedule:
+      # Specify when the job should run with a cron syntax
+      cron: "* * * * *"
+
+    # By default all jobs will be started when added, unless autostart is set to false
+    autostart: false
+
+    # Each job has one input field that defines what endpoint to fetch for this job
+    input:
+    
+      # Specified the URL to fetch
+      url: <url to fetch>
+      
+      # Optionally specify the content type if you want to overwrite the reply content type
+      contentType: <string>
+
+      # Scraping template used to extract the data out of the HTML pages
+      template:
+        <field name 1>: <css selector>
+        <field name 2>:
+          <field name 3>: <css selector>
+
+      # List of transformations to apply to the data after fetching
+      transformations: []
+
+    # Each job can define one or more outputs
+    outputs:
+
+      # Specify the destination name
+      - to: <destination name>
+
+        # Specific options for the destination
+        options:
+          <option name>: <option value>
+        
+        # List of transformations to apply to the data before sending it to the destination
+        transformations: []
+      
+      # Example for console type destination (does not require any options)
+      - to: console
+
+      # Example for influxdb
+      - to: influxdb1
+        
+        # Each influxdb outputs will create a data point in the database.
+        # The options allows us to define what will be the data point.
+
+        options:
+          
+          # Name of the measurement
+          measurement: <measurement name>
+          
+          # Tags to apply to the point. Tags MUST be string values.
+          tags:
+
+            # Tags can be litteral strings (static tagging)
+            <tag name 1>: LitteralTagValue
+
+            # Tags can be specified by a json path to a value in the json data (dynamic tagging)
+            <tag name 2>: ${<json path to the value in the json data>}
+
+            # Example to set a tag 'job_name' to the actual job name fetched from the metadata
+            job_name: ${__job_name}
+
+          # Fields to apply to the point
+          # The field type is automatically set to string or float
+          fields:
+            <field name 1>: LitteralFieldValue          # Litteral string value
+            <field name 2>: 1.123                       # Litteral float value
+            <field name 3>: ${<json path to the data>}  # json path
+
+        
