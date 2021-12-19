@@ -6,9 +6,14 @@ const Dim = "\x1b[2m"
 const Reverse = "\x1b[7m"
 const Hidden = "\x1b[8m"
  
+const FgBlack = "\x1b[30m"
 const FgRed = "\x1b[31m"
+const FgGreen = "\x1b[32m"
 const FgYellow = "\x1b[33m"
 const FgBlue = "\x1b[34m"
+const FgMagenta = "\x1b[35m"
+const FgCyan = "\x1b[36m"
+const FgWhite = "\x1b[37m"
  
 const BgBlack = "\x1b[40m"
 const BgRed = "\x1b[41m"
@@ -48,12 +53,12 @@ export const logger = {
 
 	error: (scope: string, message: string) => {
 		if(logger.logLevel >= 1)
-			logger.log(`${BgRed}ERROR${Reset}`, scope, message);
+			logger.log(`${BgRed + FgBlack}ERROR${Reset}`, scope, message);
 	},
 	
 	info: (scope: string, message: string) => {
 		if(logger.logLevel >= 3)
-			logger.log(`${BgWhite}INFO ${Reset}`, scope, message);
+			logger.log(`${BgWhite + FgBlack}INFO ${Reset}`, scope, message);
 	},
 	
 	debug: (scope: string, message: string) => {
@@ -63,7 +68,7 @@ export const logger = {
 
 	warning: (scope: string, message: string) => {
 		if(logger.logLevel >= 2)
-			logger.log(`${BgYellow}WARN ${Reset}`, scope, message);
+			logger.log(`${BgYellow + FgBlack}WARN ${Reset}`, scope, message);
 	},
 
 	log: (level: string, scope: string, message: string) => {
