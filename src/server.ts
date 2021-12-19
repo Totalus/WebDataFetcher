@@ -85,7 +85,11 @@ class Scraper {
 			return false;
 		}
 
-		return dst.write(data, options);
+		const ok = await dst.write(data, options).catch((err) => {
+			logger.error(`jobs.${jobName}`, `Job '${jobName}' coult not output data to destination '${destinationName} : ${err}`)
+		});
+
+		return ok ?? false;
 	}
 
 	shutdown() {
