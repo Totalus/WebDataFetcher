@@ -14,7 +14,7 @@ destinations:
     # Currently available options :
     # - console : send the output to the console
     # - influxdb : send the data to an InfluxDB instance
-    type: <type of destionation>
+    type: <type of destination>
     
     # The other field required depend on the type of destination
 
