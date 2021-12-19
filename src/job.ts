@@ -21,7 +21,8 @@ export interface JobOptions {
 interface InputConfig {
 	url: string,
 	template?: Record<string, any>,
-	transformations?: Array<Transformation>
+	transformations?: Array<Transformation>,
+	contentType?: string
 }
 
 interface OutputConfig {
@@ -117,18 +118,22 @@ export class Job {
 		// Fetch the input (scrape html page)
 		let reply = await axios.get(this.input.url);
 
-		let contentType = null;
-		if(reply.headers['content-type'].includes("text/html"))
-			contentType = 'html';
-		else if(reply.headers['content-type'].includes("application/json"))
-			contentType = 'json';
-		else if(reply.headers['content-type'].includes("text/plain"))
-			contentType = 'text';
-		else if(reply.headers['content-type'].includes("text/csv"))
-			contentType = 'text';
-		else {
-			logger.error(`jobs:${this.jobName}`, `Unknown content type '${reply.headers['content-type']}'`)
-			return;
+		let contentType = this.input.contentType;
+
+		if(!contentType) {
+			// Automatically figure out the content type if not specified
+			if(reply.headers['content-type'].includes("text/html"))
+				contentType = 'html';
+			else if(reply.headers['content-type'].includes("application/json"))
+				contentType = 'json';
+			else if(reply.headers['content-type'].includes("text/plain"))
+				contentType = 'text';
+			else if(reply.headers['content-type'].includes("text/csv"))
+				contentType = 'text';
+			else {
+				logger.error(`jobs:${this.jobName}`, `Unknown content type '${reply.headers['content-type']}'`)
+				return;
+			}
 		}
 
 		let data : JobData;
