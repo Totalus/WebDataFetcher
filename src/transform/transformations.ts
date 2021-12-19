@@ -65,7 +65,6 @@ function textToJson(options: TextToJsonOptions, value: any) : any {
  */
 export function applyTransformation(name: string, options: Record<string, any>, value: any) : any {
 	
-	console.log("Applying transformation", name, "on value", value);
 	switch(name) {
 		case 'regex_replace': return regexReplace(options as RegexReplaceOptions, value);
 		case 'replace': return replace(options as ReplaceOptions, value);

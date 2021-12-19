@@ -1,4 +1,5 @@
 import {InfluxDB, Point, HttpError, WriteApi} from '@influxdata/influxdb-client';
+import { logger } from '../logging';
 import { Output } from './output';
 
 export interface InfluxdbOutputOptions {
@@ -30,7 +31,7 @@ export class InfluxdbOutput extends Output {
 		if(!organisation) throw(new Error(`Can't initialize influxdb destination '${name}'. Missing required option 'organisation'`))
 		if(!bucket) throw(new Error(`Can't initialize influxdb destination '${name}'. Missing required option 'bucket'`))
 
-		console.log(`Initializing influxdb output ${name} : url=${url} bucket=${bucket} token=${token}`);
+		// console.log(`Initializing influxdb output ${name} : url=${url} bucket=${bucket} token=${token}`);
 		this.writeApi = new InfluxDB({url, token}).getWriteApi(organisation, bucket, 'ms') // Expect timestamp in seconds
 		
 		if(!defaultTags)
@@ -67,8 +68,9 @@ export class InfluxdbOutput extends Output {
 		
 		this.writeApi.writePoint(point);
 		this.writeApi.flush()
-		.catch(err => { console.log("Could not write to influxDB", err); })
-		// console.log(point)
+		.catch(err => { 
+			logger.error(`[destinations.${this.name}]`, `Could not write to influxDB: ${err}`); 
+		})
 		return true;
 	}
 }

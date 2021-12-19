@@ -6,10 +6,14 @@ import { Job } from './job';
 import { ConsoleOutput } from './destinations/console';
 import { Output } from './destinations/output';
 import { InfluxdbOutput } from './destinations/influxdb';
+import { logger } from './logging';
 
 const argv = yargs
 	.option('config', {
 		alias: 'c',
+		type: 'string'
+	})
+	.option('log-level', {
 		type: 'string'
 	})
 	.help()
@@ -27,10 +31,10 @@ class Scraper {
 
 	addJob(name: string, options: any) {
 		// Create a cron job
-		console.log(`Adding job '${name}'`);
+		logger.info(`jobs.${name}`, `Adding job ${name}`);
 
 		if(!!this.jobs[name]) {
-			console.error(`Job '${name}' already exists`);
+			logger.error(`jobs.${name}`, `Job named ${name} already exists.`)
 			return;
 		}
 
@@ -41,7 +45,7 @@ class Scraper {
 			j.start();
 		}
 		catch(exception){
-			console.info(`Could not create job ${name} : ${exception}`);
+			logger.error(`jobs.${name}`, `Could not create job ${name} : ${exception}`);
 			return;
 		}
 	}
@@ -49,21 +53,21 @@ class Scraper {
 	registerDestination(name: string, config: any) {
 		const {type, options} = config;
 
+		logger.debug(`destinations.${name}`, `Registrating destination ${name}`);
+
 		if(type == 'console') {
-			console.log(`registerDestination '${name}'`);
 			this.destinations[name] = new ConsoleOutput(name);
 		}
 		else if(type == 'influxdb') {
 			try {
 				this.destinations[name] = new InfluxdbOutput(name, options);
-				console.log(`registerDestination '${name}'`);
 			}
 			catch(error) {
-				console.log(`error: ${error}`);
+				logger.error(`destinations.${name}`, `Could not register influxdb destination: ${error}`)
 			}
 		}
 		else {
-			console.error(`Invalid destination type '${type}' for destination '${name}'`)
+			logger.error(`destinations.${name}`, `Invalid destination type '${type}' for destination '${name}'`);
 		}
 	}
 
@@ -71,11 +75,10 @@ class Scraper {
 	async outputTo(destinationName: string, jobName: string, data: any, options: Record<string, any>) : Promise<boolean> {
 		let target = this.destinations[destinationName];
 		if(!target) {
-			console.error(`Job '${jobName}' trying to output data to a destination that does not exist: '${destinationName}'.`)
+			logger.error(`jobs.${jobName}`, `Trying to output data to a destination that does not exist: '${destinationName}'.`)
 			return false;
 		}
 
-		console.log("Writing data to", destinationName);
 		return target.write(data, options);
 	}
 
@@ -87,10 +90,13 @@ class Scraper {
 const scraper = new Scraper()
 
 if(!!argv.config) {
-	console.log('Loading config file', argv.config);
+	logger.info(``, `Loading config file ${argv.config}`);
 
 	// Load configuration
 	const doc = yaml.load(fs.readFileSync(argv.config, 'utf-8')) as Record<string, any>;
+
+	// Log level
+	logger.setLogLevel(argv['log-level'] ?? doc?.logLevel);
 
 	// Register destinations
 	if(!!doc?.destinations) {
