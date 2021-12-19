@@ -43,8 +43,12 @@ class Scraper {
 			j = new Job(name, config, this.outputTo);
 			this.jobs[name] = j;
 
-			if(config.autostart !== false)
+			if(config.autostart !== false) {
+				logger.info(``, `Starting job '${name}'`);
 				j.start();
+			}
+			else
+				logger.debug(``, `Skipping starting job '${name}', autostart=false`);
 		}
 		catch(exception){
 			logger.error(`jobs.${name}`, `Could not create job ${name} : ${exception}`);
