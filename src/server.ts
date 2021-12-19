@@ -2,7 +2,7 @@
 import * as yargs from 'yargs';
 import * as yaml from 'js-yaml';
 import * as fs from 'fs';
-import { Job } from './job';
+import { Job, JobConfig } from './job';
 import { ConsoleOutput } from './destinations/console';
 import { Output } from './destinations/output';
 import { InfluxdbOutput } from './destinations/influxdb';
@@ -29,7 +29,7 @@ class Scraper {
 		this.outputTo = this.outputTo.bind(this);
 	}
 
-	addJob(name: string, options: any) {
+	addJob(name: string, config: JobConfig) {
 		// Create a cron job
 		logger.info(`jobs.${name}`, `Adding job ${name}`);
 
@@ -40,9 +40,11 @@ class Scraper {
 
 		let j : Job;
 		try {
-			j = new Job(name, options, this.outputTo);
+			j = new Job(name, config, this.outputTo);
 			this.jobs[name] = j;
-			j.start();
+
+			if(config.autostart !== false)
+				j.start();
 		}
 		catch(exception){
 			logger.error(`jobs.${name}`, `Could not create job ${name} : ${exception}`);
@@ -108,7 +110,7 @@ if(!!argv.config) {
 	// Create jobs
 	if(!!doc?.jobs) {
 		Object.entries(doc.jobs).forEach(([name, config]) => {
-			scraper.addJob(name, config);
+			scraper.addJob(name, config as JobConfig);
 		});
 	}
 }
