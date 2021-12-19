@@ -52,20 +52,34 @@ export class InfluxdbOutput extends Output {
 		
 		if(!!tags) {
 			Object.entries(tags).forEach( ([key, target]) => {
-				const result = jp.query(data, target);
-				if(result.length !== 1)
-					throw new Error(`Specified target '${target}' matches more than one entry`);
-				const value = result[0]
+
+				let value = target;
+
+				const m = /^\$\{(.*)\}$/.exec(target)
+				if(!!m) {
+					// This is a json path, resolve the value
+					const result = jp.query(data, m[1]);
+					if(result.length !== 1)
+						throw new Error(`Specified target '${target}' matches more than one entry`);
+					value = result[0]
+				}
+
 				point.tag(key, value);
 			});
 		}
 
 		if(!!fields) {
 			Object.entries(fields).forEach( ([key, target]) => {
-				const result = jp.query(data, target);
-				if(result.length !== 1)
-					throw new Error(`Specified target '${target}' matches more than one entry`);
-				const value = result[0];
+				let value = target;
+
+				const m = /^\$\{(.*)\}$/.exec(target)
+				if(!!m) {
+					// This is a json path, resolve the value
+					const result = jp.query(data, m[1]);
+					if(result.length !== 1)
+						throw new Error(`Specified target '${target}' matches more than one entry`);
+					value = result[0]
+				}
 
 				switch(typeof(value)) {
 					case 'string': point.stringField(key, value); break;
