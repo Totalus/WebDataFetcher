@@ -79,13 +79,13 @@ class Scraper {
 
 	/** Called when a job wants to write data to a destination */
 	async outputTo(destinationName: string, jobName: string, data: any, options: Record<string, any>) : Promise<boolean> {
-		let target = this.destinations[destinationName];
-		if(!target) {
+		let dst = this.destinations[destinationName];
+		if(!dst) {
 			logger.error(`jobs.${jobName}`, `Trying to output data to a destination that does not exist: '${destinationName}'.`)
 			return false;
 		}
 
-		return target.write(data, options);
+		return dst.write(data, options);
 	}
 
 	shutdown() {
