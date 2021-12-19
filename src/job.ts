@@ -5,7 +5,7 @@ import { scrapeHtml } from './scraper';
 import cloneDeep from 'lodash/cloneDeep';
 import axios from 'axios';
 import { logger } from './logging';
-import { clone } from 'lodash';
+import jp from 'jsonpath';
 
 type JobData = Record<string, any> | string;
 
@@ -28,7 +28,6 @@ interface InputConfig {
 
 interface OutputConfig {
 	to: string,
-	[key: string]: any,
 	transformations?: Array<Transformation>,
 	options?: Record<string, any>
 }
@@ -54,8 +53,8 @@ function applyTransforms(scope: string, data: JobData, transforms: Array<Transfo
 			cloned = applyTransformation(t.name, t.options, cloned);
 		}
 		else if(typeof(cloned) === 'object' && !!t.target) {
-			// TODO: find a better way to match the target (jsonpath)
-			cloned[t.target] = applyTransformation(t.name, t.options, cloned[t.target]);
+			const nodes = jp.apply(cloned, t.target, (value) => applyTransformation(t.name, t.options, value));
+			console.log(nodes);
 		}
 		else if(typeof(cloned) === 'object') {
 			cloned = applyTransformation(t.name, t.options, cloned);
