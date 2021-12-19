@@ -1,6 +1,7 @@
 import {InfluxDB, Point, HttpError, WriteApi} from '@influxdata/influxdb-client';
 import { logger } from '../logging';
 import { Output } from './output';
+import jp from 'jsonpath';
 
 export interface InfluxdbOutputOptions {
 	url: string,
@@ -51,17 +52,25 @@ export class InfluxdbOutput extends Output {
 		
 		if(!!tags) {
 			Object.entries(tags).forEach( ([key, target]) => {
-				const value = data[target];
+				const result = jp.query(data, target);
+				if(result.length !== 1)
+					throw new Error(`Specified target '${target}' matches more than one entry`);
+				const value = result[0]
 				point.tag(key, value);
 			});
 		}
 
 		if(!!fields) {
 			Object.entries(fields).forEach( ([key, target]) => {
-				const value = data[target];
+				const result = jp.query(data, target);
+				if(result.length !== 1)
+					throw new Error(`Specified target '${target}' matches more than one entry`);
+				const value = result[0];
+
 				switch(typeof(value)) {
 					case 'string': point.stringField(key, value); break;
 					case 'number': point.floatField(key, value); break;
+					default: throw new Error(`Specified target value must be string or number`);
 				}
 			});
 		}
