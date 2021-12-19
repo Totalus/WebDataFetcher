@@ -4,6 +4,8 @@ import { applyTransformation } from './transform/transformations';
 import { scrapeHtml } from './scraper';
 import cloneDeep from 'lodash/cloneDeep';
 import axios from 'axios';
+import { logger } from './logging';
+import { clone } from 'lodash';
 
 type JobData = Record<string, any> | string;
 
@@ -36,29 +38,29 @@ interface Transformation {
 }
 
 /** Apply the given transformations to the data */
-function applyTransforms(data: JobData, transforms: Array<Transformation>) : any {
-	let cloned = cloneDeep(data); // Create a copy to avoid affecting the original
+function applyTransforms(scope: string, data: JobData, transforms: Array<Transformation>) : any {
+	let cloned = cloneDeep(data);
 
 	// Apply each transformation in the list
-	transforms.forEach( (t, index) => {
+	transforms.forEach( (t, i) => {
+		logger.debug(`${scope}.transformations[${i}]`, `Applying transformation (${t.name})`);
+
 		if(typeof(cloned) === 'string') {
-			if(!!t.target) {
-				console.log(`target specified for a string input value, ignoring target.`);
-			}
+			if(!!t.target)
+				logger.warning(`${scope}.transformations[${i}]`, `target specified but the input type is string, ignoring`);
+			
 			cloned = applyTransformation(t.name, t.options, cloned);
 		}
-		else if(typeof(cloned) === 'object') {
-			if(!t.target) {
-				console.log("Error: Can't apply transform to json without a specified target");
-				return;
-			}
-			
-			// If target is specified, apply only to the given target
+		else if(typeof(cloned) === 'object' && !!t.target) {
 			// TODO: find a better way to match the target (jsonpath)
-			if(!!cloned[t.target])
 			cloned[t.target] = applyTransformation(t.name, t.options, cloned[t.target]);
 		}
-		else
+		else if(typeof(cloned) === 'object') {
+			cloned = applyTransformation(t.name, t.options, cloned);
+		}
+		else {
+			logger.warning(`${scope}.transformations[${i}]`, `Can't apply transformation on input type ${typeof(cloned)}.`);
+		}
 		return cloned;
 	});
 
@@ -77,7 +79,7 @@ export class Job {
 	outputTo : (destinationName: string, jobName: string, data: any, outputOptions: Record<string, any>) => Promise<boolean>
 
 	constructor(name: string, options: Record<string, any>, outputTo: (destinationName: string, jobName: string, data: any, outputOptions: Record<string, any>) => Promise<boolean>) {
-		console.log(`Creating job '${name}'`);
+		logger.info(`jobs.${name}`, `Creating job '${name}'`)
 		
 		this.outputTo = outputTo;
 		this.jobName = name;
@@ -110,7 +112,7 @@ export class Job {
 
 	/** Execute the job */
 	async run() {
-		console.log(`INFO [job:${this.jobName}] Running`)
+		logger.info(`jobs:${this.jobName}`, `Running`);
 		
 		// Fetch the input (scrape html page)
 		let reply = await axios.get(this.input.url);
@@ -125,7 +127,7 @@ export class Job {
 		else if(reply.headers['content-type'].includes("text/csv"))
 			contentType = 'text';
 		else {
-			console.warn(`ERROR [job:${this.jobName}] Unknown content type '${reply.headers['content-type']}'`);
+			logger.error(`jobs:${this.jobName}`, `Unknown content type '${reply.headers['content-type']}'`)
 			return;
 		}
 
@@ -137,28 +139,32 @@ export class Job {
 		
 		//let data : Record<string, any> = await scrapeUrl(this.input.url, this.input.template);
 
-		// Apply input transforms if any
+		// Apply input transformations if any
 		if(!!this.input.transformations)
-			data = applyTransforms(data, this.input.transformations)
+			data = applyTransforms(`jobs.${this.jobName}.input`, data, this.input.transformations)
 
-		// console.log(this.outputs)
-		this.outputs.forEach( (o, i) => {
-			
-			// Apply output transforms if any, and do it only for this output
-			let _data = !!o.transformations ? applyTransforms(data, o.transformations) : data;
-				
-			// Send the result to the destionation
-			this.outputTo(o.to, this.jobName, _data, o.options ?? {});
-		});
-
+		// Data at the end of input transformations should be JSON
 		if(typeof(data) != 'object') {
-			console.log(`ERROR [jobs.${this.jobName}] Data is not json at the end of the transformation pipeline`);
+			logger.error(`jobs.${this.jobName}`, "Data must be json at the end of the input transformations.");
 			return;
 		}
 
-		// Add metadata to the resulting data
+		// Inject metadata
 		data["__timestamp_ms"] = Math.floor(new Date().getTime());
 		data["__job_name"] = this.jobName;
+
+		// Send to each output
+		this.outputs.forEach( (o, i) => {
+			
+			// Apply output transformations if any, and do it only for this output
+			let _data = !!o.transformations ? applyTransforms(`jobs.${this.jobName}.outputs[${i}]`, data, o.transformations) : data;
+
+			// Send the result to the destionation
+			logger.debug(`jobs.${this.jobName}.outputs[${i}]`, `Writing data to destination ${o.to}`);
+			this.outputTo(o.to, this.jobName, _data, o.options ?? {});
+		});
+
+		
 	}
 
 	stop() {
