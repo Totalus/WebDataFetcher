@@ -12,7 +12,7 @@ ENV NODE_ENV 'production'
 # Install dependencies
 COPY package.json package.json
 COPY yarn.lock yarn.lock
-RUN yarn install --frozen-lockfile
+RUN yarn install --frozen-lockfile --prod
 
 COPY dist/ /app/
 COPY myConfig.yaml /app/config.yaml
