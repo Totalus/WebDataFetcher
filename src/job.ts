@@ -54,7 +54,6 @@ function applyTransforms(scope: string, data: JobData, transforms: Array<Transfo
 		}
 		else if(typeof(cloned) === 'object' && !!t.target) {
 			const nodes = jp.apply(cloned, t.target, (value) => applyTransformation(t.name, t.options, value));
-			console.log(nodes);
 		}
 		else if(typeof(cloned) === 'object') {
 			cloned = applyTransformation(t.name, t.options, cloned);
@@ -62,7 +61,7 @@ function applyTransforms(scope: string, data: JobData, transforms: Array<Transfo
 		else {
 			logger.warning(`${scope}.transformations[${i}]`, `Can't apply transformation on input type ${typeof(cloned)}.`);
 		}
-		return cloned;
+				return cloned;
 	});
 
 	return cloned;
