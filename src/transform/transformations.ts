@@ -32,6 +32,29 @@ function regexReplace(options: RegexReplaceOptions, value: string) : string {
 }
 
 /**
+ * RegexCompose
+ */
+
+ interface RegexComposeOptions {
+	pattern: string,
+	output: string,
+}
+
+function regexCompose(options: RegexComposeOptions, value: string) : string | null {
+	if(!options?.pattern) throw new Error("Missing 'pattern' option");
+	if(!options.output) throw new Error("Missing 'output' option");
+
+	let re = new RegExp(options.pattern, 'gm');
+
+	let m = re.exec(value);
+	if(!m || m.length <= 1)
+		return null;
+
+	return m[0].replace(re, options.output);
+}
+
+
+/**
  * TypeCast
  */
 
@@ -95,6 +118,16 @@ function restructure(options: RestructureOptions, value: any) : any {
 	return recursiveBuild(options.template);
 }
 
+/**
+ * PrintValue
+ */
+
+interface PrintValueOptions {}
+
+function printValue(options: PrintValueOptions, value: any) {
+	console.log(value);
+	return value;
+}
 
 
 /**
@@ -104,10 +137,12 @@ export function applyTransformation(name: string, options: Record<string, any>, 
 	
 	switch(name) {
 		case 'regexReplace': return regexReplace(options as RegexReplaceOptions, value);
+		case 'regexCompose': return regexCompose(options as RegexComposeOptions, value);
 		case 'replace': return replace(options as ReplaceOptions, value);
 		case 'typecast': return typecast(options as TypecastOptions, value);
 		case 'textToJson': return textToJson(options as TextToJsonOptions, value);
 		case 'restructure': return restructure(options as RestructureOptions, value);
+		case 'print': return printValue(options as PrintValueOptions, value);
 		default: throw new Error(`Unknown transformation '${name}'`);
 	}
 }
