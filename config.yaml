@@ -36,7 +36,7 @@ jobs:
     # What to scrape
     input:
       # Use a json or yaml file as template
-      url: <url to scrape>
+      url: <url to fetch>
       template: "templateFile.json"
 
       # With embedded template
