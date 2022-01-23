@@ -23,7 +23,8 @@ interface InputConfig {
 	url: string,
 	template?: Record<string, any>,
 	transformations?: Array<Transformation>,
-	contentType?: string
+	contentType?: string,
+	headers?: Record<string, string>
 }
 
 interface OutputConfig {
@@ -115,7 +116,7 @@ export class Job {
 		logger.info(`jobs:${this.jobName}`, `Running`);
 		
 		// Fetch the input (scrape html page)
-		let reply = await axios.get(this.input.url);
+		let reply = await axios.get(this.input.url, {headers: this.input.headers});
 
 		let contentType = this.input.contentType;
 
