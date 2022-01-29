@@ -122,13 +122,13 @@ export class Job {
 
 		if(!contentType) {
 			// Automatically figure out the content type if not specified
-			if(reply.headers['content-type'].includes("text/html"))
+			if(reply.headers['content-type'].toLowerCase().includes("text/html"))
 				contentType = 'html';
-			else if(reply.headers['content-type'].includes("application/json"))
+			else if(reply.headers['content-type'].toLowerCase().includes("application/json"))
 				contentType = 'json';
-			else if(reply.headers['content-type'].includes("text/plain"))
+			else if(reply.headers['content-type'].toLowerCase().includes("text/plain"))
 				contentType = 'text';
-			else if(reply.headers['content-type'].includes("text/csv"))
+			else if(reply.headers['content-type'].toLowerCase().includes("text/csv"))
 				contentType = 'text';
 			else {
 				logger.error(`jobs:${this.jobName}`, `Unknown content type '${reply.headers['content-type']}'`)
