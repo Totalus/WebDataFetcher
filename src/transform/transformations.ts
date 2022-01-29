@@ -109,7 +109,7 @@ function restructure(options: RestructureOptions, value: any) : any {
 			}
 			else if(typeof(val) === 'object') {
 			 	obj[key] = recursiveBuild(val);
-			 }
+			}
 		});
 
 		return obj;
