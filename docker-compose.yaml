@@ -3,14 +3,15 @@ version: "3"
 
 services:
   webdatafetcher:
-      build:
-        context: .
-      image: webdatafetcher
-      container_name: webdatafetcher
-      logging:
-        options:
-          max-file: 5
-          max-size: 10m
+    build:
+      context: .
+    image: webdatafetcher
+    container_name: webdatafetcher
+    logging:
+      options:
+        max-file: 5
+        max-size: 10m
+    #restart: always
 
 networks:
   default:
