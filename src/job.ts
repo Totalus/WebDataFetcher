@@ -11,7 +11,9 @@ type JobData = Record<string, any> | string;
 
 export interface JobConfig {
 	schedule: {
-		cron: string
+		cron: string,
+		runOnInit?: boolean,
+		timezone?: string
 	},
 
 	input: InputConfig,
@@ -103,12 +105,11 @@ export class Job {
 		this.outputs = outputs;
 		this.run = this.run.bind(this);
 
-		this.cronJob = new CronJob(schedule.cron, this.run);
+		this.cronJob = new CronJob(schedule.cron, this.run, null, false, schedule.timezone ?? 'UCT', null, schedule.runOnInit ?? false);
 	}
 
 	start() {
 		this.cronJob.start();
-		this.run(); // To run the job directly on start (for testing)
 	}
 
 	/** Execute the job */
@@ -134,6 +135,8 @@ export class Job {
 				logger.error(`jobs:${this.jobName}`, `Unknown content type '${reply.headers['content-type']}'`)
 				return;
 			}
+
+			logger.debug(`jobs:${this.jobName}`, `Detected content type: ${contentType}`);
 		}
 
 		let data : JobData;
