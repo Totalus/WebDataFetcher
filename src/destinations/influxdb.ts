@@ -20,9 +20,12 @@ export interface InfluxdbWriteOptions {
 export class InfluxdbOutput extends Output {
 	writeApi : WriteApi
 
-	constructor(name: string, options : InfluxdbOutputOptions) {
-		super(name)
-		
+	constructor(name: string, disabled: boolean, options : InfluxdbOutputOptions) {
+		super(name, disabled)
+
+		if(this.disabled)
+			logger.warning(`[destinations.${this.name}]`, `Destination is disabled`)
+
 		// Create a write api instance
 		const {url, token, organisation, bucket, defaultTags} = options;
 
@@ -46,6 +49,11 @@ export class InfluxdbOutput extends Output {
 	async write(data: any, options: InfluxdbWriteOptions) : Promise<boolean> {
 
 		const { fields, tags = {}, measurement = "default" } = options;
+
+		if(this.disabled) {
+			logger.warning(`destinations.${this.name}`, `Skip writing to output : disabled`)
+			return true;
+		}
 
 		let point = new Point(measurement);
 		point.timestamp(data["__timestamp_ms"]);
@@ -92,7 +100,7 @@ export class InfluxdbOutput extends Output {
 		this.writeApi.writePoint(point);
 		this.writeApi.flush()
 		.catch(err => { 
-			logger.error(`[destinations.${this.name}]`, `Could not write to influxDB: ${err}`); 
+			logger.error(`destinations.${this.name}`, `Could not write to influxDB: ${err}`); 
 		})
 		return true;
 	}

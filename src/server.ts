@@ -57,16 +57,16 @@ class Scraper {
 	}
 	
 	registerDestination(name: string, config: any) {
-		const {type, options} = config;
+		const {type, options, disable} = config;
 
 		logger.debug(`destinations.${name}`, `Registrating destination ${name}`);
 
 		if(type == 'console') {
-			this.destinations[name] = new ConsoleOutput(name);
+			this.destinations[name] = new ConsoleOutput(name, disable);
 		}
 		else if(type == 'influxdb') {
 			try {
-				this.destinations[name] = new InfluxdbOutput(name, options);
+				this.destinations[name] = new InfluxdbOutput(name, disable, options);
 			}
 			catch(error) {
 				logger.error(`destinations.${name}`, `Could not register influxdb destination: ${error}`)
