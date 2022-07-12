@@ -1,5 +1,5 @@
 
-version: "3"
+version: "3.7"
 
 services:
   webdatafetcher:
@@ -11,9 +11,8 @@ services:
       options:
         max-file: 5
         max-size: 10m
-    #restart: always
+    restart: always
 
 networks:
   default:
-    external:
-      name: "${DOCKER_NETWORK:-web}"
+    name: "${DOCKER_NETWORK:-web}"
