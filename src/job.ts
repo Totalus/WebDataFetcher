@@ -47,24 +47,30 @@ function applyTransforms(scope: string, data: JobData, transforms: Array<Transfo
 
 	// Apply each transformation in the list
 	transforms.forEach( (t, i) => {
-		logger.debug(`${scope}.transformations[${i}]`, `Applying transformation (${t.name})`);
-
-		if(typeof(cloned) === 'string') {
-			if(!!t.target)
-				logger.warning(`${scope}.transformations[${i}]`, `target specified but the input type is string, ignoring`);
-			
-			cloned = applyTransformation(t.name, t.options, cloned);
+		try {
+			logger.debug(`${scope}.transformations[${i}]`, `Applying transformation (${t.name})`);
+	
+			if(typeof(cloned) === 'string') {
+				if(!!t.target)
+					logger.warning(`${scope}.transformations[${i}]`, `target specified but the input type is string, ignoring`);
+				
+				cloned = applyTransformation(t.name, t.options, cloned);
+			}
+			else if(typeof(cloned) === 'object' && !!t.target) {
+				const nodes = jp.apply(cloned, t.target, (value) => applyTransformation(t.name, t.options, value));
+			}
+			else if(typeof(cloned) === 'object') {
+				cloned = applyTransformation(t.name, t.options, cloned);
+			}
+			else {
+				logger.warning(`${scope}.transformations[${i}]`, `Can't apply transformation on input type ${typeof(cloned)}.`);
+			}
+			return cloned;
 		}
-		else if(typeof(cloned) === 'object' && !!t.target) {
-			const nodes = jp.apply(cloned, t.target, (value) => applyTransformation(t.name, t.options, value));
+		catch(err) {
+			logger.error(`${scope}.transformations[${i}]`, `${err}`);
+			return null;
 		}
-		else if(typeof(cloned) === 'object') {
-			cloned = applyTransformation(t.name, t.options, cloned);
-		}
-		else {
-			logger.warning(`${scope}.transformations[${i}]`, `Can't apply transformation on input type ${typeof(cloned)}.`);
-		}
-				return cloned;
 	});
 
 	return cloned;
