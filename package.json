@@ -22,7 +22,9 @@
     "start": "tsc && node dist/server.js",
     "build": "tsc",
     "test": "jest",
-    "build-image": "docker build -t server-template-img ."
+    "build-image": "docker build -t server-template-img .",
+    "build-all": "yarn build && docker compose -f docker-compose.yaml build",
+    "deploy": "yarn build-all && docker compose -f docker-compose.yaml up -d"
   },
   "dependencies": {
     "@influxdata/influxdb-client": "^1.21.0",
