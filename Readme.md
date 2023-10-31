@@ -265,9 +265,38 @@ transformations:
 #
 ```
 
+
+### `count`
+
+This transformation allows you count the number of element in an array or a string.
+
+```yaml
+transformations:
+  - name: count
+    
+    # You may optionally specify a target if you want to
+    # transform a nested string field into json
+    target: <json path>
+
+# Example
+transformations:
+  - name: count
+    target: members
+
+# Input value:
+# {
+#    "members": ["John", "Max", "David", "Helen", "Jo"]
+# }
+#
+# Output value:
+# {
+#     "member": 5
+# }
+#
+``````
+
 ## Other ideas of transforms
 
-- Restructure : Allows to completely restructure the data
 - CsvToJson : Convert the given CSV to a JSON object
 - RenameField : Rename a field
 - SimpleEval : Resolves a math operation on one or multiple numeric fiels (`[fieldName] + [fieldName]`)
@@ -281,5 +310,5 @@ transformations:
 - [ ] Implement json path to specify target
 - [ ] Support composing new values from multiple source fields using JsonPath expresions in `restructure` transform (ex: `output: "${$.price} - ${$.model}"`)
 - [ ] Use brackets with json path for `target` in transformations for more consistency ?
-- [ ] Add a `disable` option for destinations to disable a specific destination
+- [x] Add a `disable` option for destinations to disable a specific destination
 - [ ] Add a `disable` option for outputs to disable a specific output (in jobs) ?

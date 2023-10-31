@@ -120,12 +120,23 @@ function restructure(options: RestructureOptions, value: any) : any {
 }
 
 /**
+ * Count elements of an array or characters of a string
+ */
+
+interface CountOptions {}
+
+function count(options: CountOptions, value: any[]|string) : number {
+	return value.length;
+}
+
+
+/**
  * PrintValue
  */
 
 interface PrintValueOptions {}
 
-function printValue(options: PrintValueOptions, value: any) {
+function printValue(options: PrintValueOptions, value: any) : any {
 	console.log(value);
 	return value;
 }
@@ -144,6 +155,7 @@ export function applyTransformation(name: string, options: Record<string, any>, 
 		case 'textToJson': return textToJson(options as TextToJsonOptions, value);
 		case 'restructure': return restructure(options as RestructureOptions, value);
 		case 'print': return printValue(options as PrintValueOptions, value);
+		case 'count': return count(options as CountOptions, value);
 		default: throw new Error(`Unknown transformation '${name}'`);
 	}
 }
