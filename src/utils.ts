@@ -1,5 +1,5 @@
 
-export function simplifyString(string) {
+export function simplifyString(string: string) {
 
 	if(!string)
 		return string;
