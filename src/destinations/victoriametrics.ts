@@ -2,6 +2,7 @@ import { Output } from "./output";
 import { logger } from '../logging';
 import jp from 'jsonpath';
 import axios from "axios";
+import { resolveJsonPath } from "../utils";
 
 
 type VictoriaMetricsOutputOptions = {
@@ -46,27 +47,15 @@ export class VictoriaMetricsOutput extends Output {
         if(!options.metrics || options.metrics.length == 0)
             throw new Error(`No metric specified in options`);
 
+        // Replace all json paths with their value
+        options = resolveJsonPath(data, options) as VictoriaMetricsWriteOptions;
+
         for(let m of options.metrics) {
 
             if(!m.name) throw new Error(`Metric name undefined`)
             if(!m.value) throw new Error(`'value' field should be defined for metric ${m.name}`)
 
-            let value;
-            const jpath = /^\$\{(.*)\}$/.exec(m.value)
-            if(jpath && jpath[1] != '') {
-                // This is a json path, resolve the value
-                const result = jp.query(data, jpath[1]);
-
-                if(result.length == 0)
-                    continue
-                else if(result.length != 1)
-                    throw new Error(`Specified value '${value}' for metric '${m.name}' matches more than one entry in data`);
-                
-                value = result[0]
-            }
-            else
-                throw new Error(`Invalid json path of value for metric '${m.name}'. Should be of format $\{<json-path>\}`)
-
+            let value: any = m.value;
             if(typeof(value) != 'number')
                 value = Number(value)
 
