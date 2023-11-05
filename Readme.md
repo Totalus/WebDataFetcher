@@ -26,10 +26,12 @@ It also allows to specify input and outputs transformations that allow you to re
 
 A destination is a place where to send the data, for instance a database. The following destination types are currently available:
 
-- `influxdb` : InfluxDB time series database
-- `console` : print to the console
+- `console` : Print to console
+- `influxdb` : InfluxDB v2 time series database
+- `victoriaMetrics` : Victoria Metrics database
 
-To use a destination, it must be configured :
+
+To use a destination, it must first be configured:
 
 ```yaml
 # myConfig.yaml
@@ -48,6 +50,12 @@ destinations:
       token: <your influxdb token>
       organisation: myOrganisation
       bucket: <your destination bucket>
+
+  # Victoria Metrics
+  myVictoriaMetrics:
+    type: victoriaMetrics
+    options:
+      url: http://victoriametrics:8428
 
 ```
 
@@ -99,6 +107,7 @@ jobs:
 
     # Where to send the data
     outputs:
+      # Write data to Influxdb v2
       - to: myInfluxdb  # The destination name
         options:
           # InfluxDB specific options (create a point)
@@ -108,6 +117,16 @@ jobs:
             model: "Samsung 1Tb"
           fields:
             price: ${price} # Use json path to specify the target
+
+      # Write data to victoria metrics
+      - to: myVictoriaMetrics
+        options:
+          metrics:
+            - name: price
+              labels:
+                product: "SSD"
+                model: "Samsung 1Tb"
+              value: ${price}
 ```
 
 
@@ -268,7 +287,7 @@ transformations:
 
 ### `count`
 
-This transformation allows you count the number of element in an array or a string.
+This transformation allows you count the number of element in an array or characters of a string.
 
 ```yaml
 transformations:
@@ -290,7 +309,7 @@ transformations:
 #
 # Output value:
 # {
-#     "member": 5
+#     "members": 5
 # }
 #
 ``````

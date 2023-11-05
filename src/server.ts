@@ -7,6 +7,7 @@ import { ConsoleOutput } from './destinations/console';
 import { Output } from './destinations/output';
 import { InfluxdbOutput } from './destinations/influxdb';
 import { logger } from './logging';
+import { VictoriaMetricsOutput } from './destinations/victoriametrics';
 
 const argv = yargs
 	.option('config', {
@@ -72,6 +73,14 @@ class Scraper {
 				logger.error(`destinations.${name}`, `Could not register influxdb destination: ${error}`)
 			}
 		}
+		else if(type == 'victoriaMetrics') {
+			try {
+				this.destinations[name] = new VictoriaMetricsOutput(name, disable, options)
+			}
+			catch(error) {
+				logger.error(`destinations.${name}`, `Could not register victoriaMetrics destination: ${error}`)
+			}
+		}
 		else {
 			logger.error(`destinations.${name}`, `Invalid destination type '${type}' for destination '${name}'`);
 		}
@@ -86,7 +95,7 @@ class Scraper {
 		}
 
 		const ok = await dst.write(data, options).catch((err) => {
-			logger.error(`jobs.${jobName}`, `Job '${jobName}' coult not output data to destination '${destinationName} : ${err}`)
+			logger.error(`jobs.${jobName}`, `Job '${jobName}' could not output data to destination '${destinationName} : ${err}`)
 		});
 
 		return ok ?? false;

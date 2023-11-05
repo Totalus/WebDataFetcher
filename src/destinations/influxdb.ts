@@ -24,7 +24,7 @@ export class InfluxdbOutput extends Output {
 		super(name, disabled)
 
 		if(this.disabled)
-			logger.warning(`[destinations.${this.name}]`, `Destination is disabled`)
+			logger.warning(`destinations.${this.name}`, `Destination is disabled`)
 
 		// Create a write api instance
 		const {url, token, organisation, bucket, defaultTags} = options;

@@ -16,13 +16,11 @@ destinations:
     token: someToken
     defaultBucket: someBucketToUse
 
-  # MongoDB storage
-  mongo1:
-    type: mongodb
-    url: mongoUrl
-    port: 6079
-    user: admin
-    pass: userPass
+  # Victoria Metrics
+  victoria-metrics:
+    type: victoriaMetrics
+    options:
+      url: 
 
 logLevel: debug
 
