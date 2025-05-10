@@ -60,7 +60,7 @@ class Scraper {
 	registerDestination(name: string, config: any) {
 		const {type, options, disable} = config;
 
-		logger.debug(`destinations.${name}`, `Registrating destination ${name}`);
+		logger.debug(`destinations.${name}`, `Registering destination: name=${name} type=${type}`);
 
 		if(type == 'console') {
 			this.destinations[name] = new ConsoleOutput(name, disable);
