@@ -149,7 +149,7 @@ export class Job {
 			else if(reply.headers['content-type'].toLowerCase().includes("text/plain"))
 				contentType = 'text';
 			else if(reply.headers['content-type'].toLowerCase().includes("text/csv"))
-				contentType = 'text';
+				contentType = 'csv';
 			else {
 				logger.error(`jobs:${this.jobName}`, `Unknown content type '${reply.headers['content-type']}'`)
 				return;
@@ -164,8 +164,6 @@ export class Job {
 		else
 			data = reply.data;
 		
-		//let data : Record<string, any> = await scrapeUrl(this.input.url, this.input.template);
-
 		// Apply input transformations if any
 		if(!!this.input.transformations)
 			data = applyTransforms(`jobs.${this.jobName}.input`, data, this.input.transformations)
