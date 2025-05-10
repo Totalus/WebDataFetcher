@@ -3,7 +3,7 @@ import { CronJob } from 'cron';
 import { applyTransformation } from './transform/transformations';
 import { scrapeHtml } from './scraper';
 import cloneDeep from 'lodash/cloneDeep';
-import axios from 'axios';
+import axios, { AxiosRequestConfig } from 'axios';
 import { logger } from './logging';
 import jp from 'jsonpath';
 
@@ -21,12 +21,18 @@ export interface JobConfig {
 	autostart: boolean
 }
 
-interface InputConfig {
+interface RequestConfig {
 	url: string,
+	method?: 'get' | 'post' | 'put' | 'delete' | 'patch',
+	headers?: Record<string, string>,
+	data?: any
+}
+
+interface InputConfig {
+	request: RequestConfig,
 	template?: Record<string, any>,
 	transformations?: Array<Transformation>,
 	contentType?: string,
-	headers?: Record<string, string>
 }
 
 interface OutputConfig {
@@ -99,13 +105,13 @@ export class Job {
 		if(!schedule)
 			throw(new Error(`Undefined 'schedule' field in job '${name}'`));
 		if(!input)
-			throw(new Error(`Undefined 'intputs' field in job '${name}'`));
+			throw(new Error(`Undefined 'intput' field in job '${name}'`));
 		if(!outputs)
 			throw(new Error(`Undefined 'outputs' field in job '${name}'`));
 		if(!schedule.cron)
 			throw(new Error(`Undefined 'cron' field in job.${name}.schedule`))
-		if(!input.url)
-			throw(new Error(`Undefined 'url' and/or 'template' field in job.${name}.input`))
+		if(!input.request || !input.request.url)
+			throw(new Error(`Undefined or invalid 'input.request' configuration in job ${name}`))
 
 		this.input = input;
 		this.outputs = outputs;
@@ -122,8 +128,15 @@ export class Job {
 	async run() {
 		logger.info(`jobs:${this.jobName}`, `Running`);
 		
-		// Fetch the input (scrape html page)
-		let reply = await axios.get(this.input.url, {headers: this.input.headers});
+		// Fetch the input using the request config
+		const requestConfig: AxiosRequestConfig = {
+			url: this.input.request.url,
+			method: this.input.request.method ?? 'get',
+			headers: this.input.request.headers,
+			data: this.input.request.data
+		};
+		
+		let reply = await axios(requestConfig);
 
 		let contentType = this.input.contentType;
 
@@ -177,8 +190,6 @@ export class Job {
 			logger.debug(`jobs.${this.jobName}.outputs[${i}]`, `Writing data to destination '${o.to}'`);
 			this.outputTo(o.to, this.jobName, _data, o.options ?? {});
 		});
-
-		
 	}
 
 	stop() {

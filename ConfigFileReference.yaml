@@ -49,8 +49,20 @@ jobs:
     # Each job has one input field that defines what endpoint to fetch for this job
     input:
     
-      # Specified the URL to fetch
-      url: <url to fetch>
+      # HTTP request configuration
+      request:
+        # URL to fetch (required)
+        url: <url to fetch>
+        # HTTP method (optional, defaults to 'get')
+        method: get|post|put|delete|patch
+        # HTTP headers (optional)
+        headers:
+          <header name>: <header value>
+          Content-Type: application/json
+          Authorization: Bearer <token>
+        # Request body data for POST, PUT, etc. (optional)
+        data: 
+          <key>: <value>
       
       # Optionally specify the content type if you want to overwrite the reply content type
       contentType: <string>

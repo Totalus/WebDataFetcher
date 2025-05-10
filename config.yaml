@@ -33,12 +33,20 @@ jobs:
 
     # What to scrape
     input:
+      # Define the HTTP request details
+      request:
+        url: <url to fetch>
+        method: get  # Optional, defaults to 'get'
+        headers:     # Optional
+          User-Agent: "Mozilla/5.0"
+          Accept: "text/html"
+        # data:      # Optional, for POST/PUT requests
+        #   key: value
+      
       # Use a json or yaml file as template
-      url: <url to fetch>
       template: "templateFile.json"
 
       # With embedded template
-      # url: "http://the.url.to.scrape.com/somePath"
       # template:
       #   myValue: h1
       #   mySecondValue: "#123"
@@ -54,4 +62,4 @@ jobs:
           # Convert the type to float
           - target: myValue
             type: float
-        
+
