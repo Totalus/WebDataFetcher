@@ -162,7 +162,7 @@ transformations:
 transformations:
   - name: regexReplace
     options:
-      pattern: "(\w) (\w)"
+      pattern: "(\w+) (\w+)"
       output: "Hello Mr. $2, or should I call you $1 ?"
 
 # Input value:       "James Bond"
@@ -321,6 +321,7 @@ transformations:
 - SimpleEval : Resolves a math operation on one or multiple numeric fiels (`[fieldName] + [fieldName]`)
 - Scrape : Scrape the value as HTML, output the json result
 - sed : Équivalent of `sed` command line tool
+- Dedupe : Remove duplicate enties in an array of data if specified field values match
 
 # TODO
 
@@ -331,3 +332,4 @@ transformations:
 - [ ] Use brackets with json path for `target` in transformations for more consistency ?
 - [x] Add a `disable` option for destinations to disable a specific destination
 - [ ] Add a `disable` option for outputs to disable a specific output (in jobs) ?
+- [ ] Option to combine the result of multiple requests (and dedupe for a certain key)
