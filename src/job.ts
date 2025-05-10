@@ -1,6 +1,5 @@
-
 import { CronJob } from 'cron';
-import { applyTransformation } from './transform/transformations';
+import { applyTransformation, TransformationName, TransformationOptions } from './transformations';
 import { scrapeHtml } from './scraper';
 import cloneDeep from 'lodash/cloneDeep';
 import axios, { AxiosRequestConfig } from 'axios';
@@ -42,9 +41,9 @@ interface OutputConfig {
 }
 
 interface Transformation {
-	name: string,
-	target?: string,
-	options: Record<string, any>
+	name: TransformationName,
+	options: TransformationOptions,
+	target?: string
 }
 
 /** Apply the given transformations to the data */
