@@ -7,10 +7,12 @@ export interface RegexComposeOptions {
   output: string,
 }
 
-export function regexCompose(options: RegexComposeOptions, value: string) : string | null {
+export function regexCompose(options: RegexComposeOptions, value: any) : string | null {
   if(!options?.pattern) throw new Error("Missing 'pattern' option");
   if(!options.output) throw new Error("Missing 'output' option");
-
+  
+  if(typeof value !== 'string') throw new Error("Value must be a string for 'regexCompose' transformation");
+  
   let re = new RegExp(options.pattern, 'gm');
 
   let m = re.exec(value);

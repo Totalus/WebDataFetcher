@@ -7,9 +7,11 @@ export interface ReplaceOptions {
   search: string
 }
 
-export function replace(options: ReplaceOptions, text: string) : string {
-  if(!text) throw new Error("Text undefined");
+export function replace(options: ReplaceOptions, value: any) : string {
   if(!options?.search) throw new Error("Missing 'search' option");
   if(options.replaceWith === undefined || options.replaceWith === null) throw new Error("Missing 'replaceWith' option");
-  return text.replaceAll(options.search, options.replaceWith);
+  
+  if(typeof value !== 'string') throw new Error("Value must be a string for 'replace' transformation");
+  
+  return value.replaceAll(options.search, options.replaceWith);
 }

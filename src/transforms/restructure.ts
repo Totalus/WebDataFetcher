@@ -10,7 +10,9 @@ export interface RestructureOptions {
 
 export function restructure(options: RestructureOptions, value: any) : any {
   if(!options.template) throw new Error("Missing 'template' option in restructure transformation");
-
+  
+  if(typeof value !== 'object') throw new Error("Value must be an object for 'restructure' transformation");
+  
   function recursiveBuild(_template: Record<string, any>) {
     let obj : Record<string, any> = {};
 
