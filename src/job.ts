@@ -56,12 +56,12 @@ function applyTransforms(scope: string, data: JobData, transforms: Array<Transfo
 			logger.debug(`${scope}.transformations[${i}]`, `Applying transformation (${t.name})`);
 	
 			if(typeof(cloned) === 'string') {
-				if(!!t.target)
+				if(t.target)
 					logger.warning(`${scope}.transformations[${i}]`, `target specified but the input type is string, ignoring`);
 				
 				cloned = applyTransformation(t.name, t.options, cloned);
 			}
-			else if(typeof(cloned) === 'object' && !!t.target) {
+			else if(typeof(cloned) === 'object' && t.target) {
 				const nodes = jp.apply(cloned, t.target, (value) => applyTransformation(t.name, t.options, value));
 			}
 			else if(typeof(cloned) === 'object') {
