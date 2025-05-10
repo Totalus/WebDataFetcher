@@ -1,6 +1,5 @@
 import { CronJob } from 'cron';
 import { applyTransformation, TransformationName, TransformationOptions } from './transformations';
-import { scrapeHtml } from './scraper';
 import cloneDeep from 'lodash/cloneDeep';
 import axios, { AxiosRequestConfig } from 'axios';
 import { logger } from './logging';
@@ -29,7 +28,6 @@ interface RequestConfig {
 
 interface InputConfig {
 	request: RequestConfig,
-	template?: Record<string, any>,
 	transformations?: Array<Transformation>,
 	contentType?: string,
 }
@@ -157,15 +155,13 @@ export class Job {
 			logger.debug(`jobs:${this.jobName}`, `Detected content type: ${contentType}`);
 		}
 
-		let data : JobData;
-		if(contentType === 'html' && !!this.input.template)
-			data = scrapeHtml(reply.data, this.input.template);
-		else
-			data = reply.data;
+		// Get initial data based on content type
+		let data: JobData = reply.data;
 		
 		// Apply input transformations if any
-		if(!!this.input.transformations)
-			data = applyTransforms(`jobs.${this.jobName}.input`, data, this.input.transformations)
+		if(this.input.transformations && this.input.transformations.length > 0) {
+			data = applyTransforms(`jobs.${this.jobName}.input`, data, this.input.transformations);
+		}
 
 		// Data at the end of input transformations should be JSON
 		if(typeof(data) != 'object') {
@@ -192,5 +188,4 @@ export class Job {
 	stop() {
 		this.cronJob.stop()
 	}
-
 }

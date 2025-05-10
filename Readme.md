@@ -138,6 +138,42 @@ Transformations allow to manipulate the data before it is sent to the output. Tr
 
 Refer to [transformations.ts](./src/transform/transformations.ts)
 
+### `scrapeHtml`
+
+This transformation extracts structured data from HTML content using CSS selectors.
+
+```yaml
+transformations:
+  - name: scrapeHtml
+    options:
+      template:
+        # Simple field extraction using CSS selectors
+        title: h1
+        price: .price-current
+        description: p.description
+        
+        # Nested object extraction
+        details:
+          manufacturer: .manufacturer
+          model: .model-number
+          
+        # Array extraction
+        features:
+          - .feature-item
+```
+
+Example:
+```yaml
+transformations:
+  - name: scrapeHtml
+    options:
+      template:
+        price: .price-current
+        name: h1.product-title
+        
+# Input: HTML content of a product page
+# Output: { "price": "$159.99", "name": "Samsung 970 EVO Plus 1TB SSD" }
+```
 
 ### `regexReplace`
 
