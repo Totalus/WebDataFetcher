@@ -1,5 +1,5 @@
 
-import * as yargs from 'yargs';
+import yargs from 'yargs';
 import * as yaml from 'js-yaml';
 import * as fs from 'fs';
 import { Job, JobConfig } from './job';
@@ -9,7 +9,7 @@ import { InfluxdbOutput } from './destinations/influxdb';
 import { logger } from './logging';
 import { VictoriaMetricsOutput } from './destinations/victoriametrics';
 
-const argv = yargs
+const argv = yargs(process.argv.slice(2))
 	.option('config', {
 		alias: 'c',
 		type: 'string'
@@ -19,7 +19,7 @@ const argv = yargs
 	})
 	.help()
 	.alias('help', 'h')
-	.argv;
+	.parseSync();
 
 class Scraper {
 

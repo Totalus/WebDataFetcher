@@ -4,17 +4,15 @@
   "main": "server.js",
   "license": "MIT",
   "devDependencies": {
-    "@tsconfig/node14": "^1.0.1",
-    "@types/cron": "^1.7.3",
-    "@types/express": "^4.17.13",
-    "@types/jest": "^27.0.3",
-    "@types/js-yaml": "^4.0.5",
-    "@types/jsonpath": "^0.2.0",
-    "@types/lodash": "^4.14.178",
-    "jest": "^27.2.4",
-    "ts-jest": "^27.1.2",
-    "ts-node": "^10.4.0",
-    "tsc-watch": "^4.4.0",
+    "@types/express": "^5.0.1",
+    "@types/jest": "^29.5.14",
+    "@types/js-yaml": "^4.0.9",
+    "@types/jsonpath": "^0.2.4",
+    "@types/lodash": "^4.17.16",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.3.2",
+    "ts-node": "^10.9.2",
+    "tsc-watch": "^6.2.1",
     "typescript": "^5.8.3"
   },
   "scripts": {
@@ -27,16 +25,16 @@
     "deploy": "yarn build-all && docker compose -f docker-compose.yaml up -d"
   },
   "dependencies": {
-    "@influxdata/influxdb-client": "^1.21.0",
+    "@influxdata/influxdb-client": "^1.35.0",
     "@tsconfig/node22": "^22.0.1",
     "axios": "^0.24.0",
-    "cron": "^1.8.2",
+    "cron": "^4.3.0",
     "express": "^4.17.1",
     "js-yaml": "^4.1.0",
     "jsdom": "^19.0.0",
     "jsonpath": "^1.1.1",
     "lodash": "^4.17.21",
-    "yargs": "^17.3.0"
+    "yargs": "^17.7.2"
   },
   "jest": {
     "moduleFileExtensions": [
