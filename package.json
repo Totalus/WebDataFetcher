@@ -15,7 +15,7 @@
     "ts-jest": "^27.1.2",
     "ts-node": "^10.4.0",
     "tsc-watch": "^4.4.0",
-    "typescript": "^4.3.5"
+    "typescript": "^5.8.3"
   },
   "scripts": {
     "start:watch": "tsc-watch --noClear --onSuccess \"node dist/server.js\"",
@@ -28,6 +28,7 @@
   },
   "dependencies": {
     "@influxdata/influxdb-client": "^1.21.0",
+    "@tsconfig/node22": "^22.0.1",
     "axios": "^0.24.0",
     "cron": "^1.8.2",
     "express": "^4.17.1",
