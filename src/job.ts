@@ -41,7 +41,8 @@ interface OutputConfig {
 interface Transformation {
 	name: TransformationName,
 	options: TransformationOptions,
-	target?: string
+	source?: string,
+	destination?: string
 }
 
 /** Apply the given transformations to the data */
@@ -54,25 +55,51 @@ function applyTransforms(scope: string, data: JobData, transforms: Array<Transfo
 			logger.debug(`${scope}.transformations[${i}]`, `Applying transformation (${t.name})`);
 	
 			if(typeof(cloned) === 'string') {
-				if(t.target)
-					logger.warning(`${scope}.transformations[${i}]`, `target specified but the input type is string, ignoring`);
+				if(t.source || t.destination)
+					logger.warning(`${scope}.transformations[${i}]`, `source/destination specified but the input type is string, ignoring`);
 				
 				cloned = applyTransformation(t.name, t.options, cloned);
 			}
-			else if(typeof(cloned) === 'object' && t.target) {
-				const nodes = jp.apply(cloned, t.target, (value) => applyTransformation(t.name, t.options, value));
+			else if(typeof(cloned) === 'object' && t.source) {
+				// Extract data at source path
+				const sourceValue = jp.query(cloned, t.source);
+				if(sourceValue.length === 0) {
+					logger.warning(`${scope}.transformations[${i}]`, `source path '${t.source}' did not match any data, skipping transformation`);
+					return cloned;
+				}
+				
+				// Apply transformation on the extracted source data
+				const transformedValue = applyTransformation(t.name, t.options, sourceValue.length === 1 ? sourceValue[0] : sourceValue);
+				
+				// If destination is specified, store result at the root key; otherwise replace at the source path
+				if(t.destination) {
+					// Assign transformedValue to the destination key at the root of the object
+					(cloned as Record<string, any>)[t.destination] = transformedValue;
+				} else {
+					// Replace at source path
+					jp.apply(cloned, t.source, () => transformedValue);
+				}
 			}
 			else if(typeof(cloned) === 'object') {
-				cloned = applyTransformation(t.name, t.options, cloned);
+				// Apply transformation on the entire object and handle result
+				const transformedValue = applyTransformation(t.name, t.options, cloned);
+				
+				// If destination is specified, store the result at the root key
+				if(t.destination) {
+					// Assign transformedValue to the destination key at the root of the object
+					(cloned as Record<string, any>)[t.destination] = transformedValue;
+				} else {
+					// Replace entire data with the transformation result
+					cloned = transformedValue;
+				}
 			}
 			else {
 				logger.warning(`${scope}.transformations[${i}]`, `Can't apply transformation on input type ${typeof(cloned)}.`);
 			}
-			return cloned;
+			
 		}
 		catch(err) {
-			logger.error(`${scope}.transformations[${i}]`, `${err}`);
-			return null;
+			throw new Error(`${scope}.transformations[${i}] (${t.name}) ${err}`);
 		}
 	});
 
