@@ -7,9 +7,10 @@ import { restructure, RestructureOptions } from './transforms/restructure';
 import { printValue, PrintValueOptions } from './transforms/printValue';
 import { count, CountOptions } from './transforms/count';
 import { scrapeHtml, ScrapeHtmlOptions } from './transforms/scrapeHtml';
+import { reduce, ReduceOptions } from './transforms/reduce';
 
 
-export type TransformationName = 'replace' | 'regexReplace' | 'regexCompose' | 'typecast' | 'textToJson' | 'restructure' | 'print' | 'count' | 'scrapeHtml';
+export type TransformationName = 'replace' | 'regexReplace' | 'regexCompose' | 'typecast' | 'textToJson' | 'restructure' | 'print' | 'count' | 'scrapeHtml' | 'reduce';
 export type TransformationOptions = 
   | ReplaceOptions
   | RegexReplaceOptions
@@ -19,7 +20,8 @@ export type TransformationOptions =
   | RestructureOptions
   | PrintValueOptions
   | CountOptions
-  | ScrapeHtmlOptions;
+  | ScrapeHtmlOptions
+  | ReduceOptions;
 
 /**
  * Function to apply a transformation on a value, by its name
@@ -35,6 +37,7 @@ export function applyTransformation(name: TransformationName, options: Transform
     case 'print': return printValue(options as PrintValueOptions, value);
     case 'count': return count(options as CountOptions, value);
     case 'scrapeHtml': return scrapeHtml(options as ScrapeHtmlOptions, value);
+    case 'reduce': return reduce(options as ReduceOptions, value);
     default: throw new Error(`Unknown transformation '${name}'`);
   }
 }
