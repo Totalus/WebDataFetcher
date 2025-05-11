@@ -51,9 +51,8 @@ export class VictoriaMetricsOutput extends Output {
         options = resolveJsonPath(data, options) as VictoriaMetricsWriteOptions;
 
         for(let m of options.metrics) {
-
             if(!m.name) throw new Error(`Metric name undefined`)
-            if(!m.value) throw new Error(`'value' field should be defined for metric ${m.name}`)
+            if(!m.value == null) throw new Error(`'value' field should be defined for metric '${m.name}'`)
 
             let value: any = m.value;
             if(typeof(value) != 'number')
