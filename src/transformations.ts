@@ -8,9 +8,10 @@ import { printValue, PrintValueOptions } from './transforms/printValue';
 import { count, CountOptions } from './transforms/count';
 import { scrapeHtml, ScrapeHtmlOptions } from './transforms/scrapeHtml';
 import { reduce, ReduceOptions } from './transforms/reduce';
+import { objectToArray, ObjectToArrayOptions } from './transforms/objectToArray';
 
 
-export type TransformationName = 'replace' | 'regexReplace' | 'regexCompose' | 'typecast' | 'textToJson' | 'restructure' | 'print' | 'count' | 'scrapeHtml' | 'reduce';
+export type TransformationName = 'replace' | 'regexReplace' | 'regexCompose' | 'typecast' | 'textToJson' | 'restructure' | 'print' | 'count' | 'scrapeHtml' | 'reduce' | 'objectToArray';
 export type TransformationOptions = 
   | ReplaceOptions
   | RegexReplaceOptions
@@ -21,7 +22,8 @@ export type TransformationOptions =
   | PrintValueOptions
   | CountOptions
   | ScrapeHtmlOptions
-  | ReduceOptions;
+  | ReduceOptions
+  | ObjectToArrayOptions;
 
 /**
  * Function to apply a transformation on a value, by its name
@@ -38,6 +40,7 @@ export function applyTransformation(name: TransformationName, options: Transform
     case 'count': return count(options as CountOptions, value);
     case 'scrapeHtml': return scrapeHtml(options as ScrapeHtmlOptions, value);
     case 'reduce': return reduce(options as ReduceOptions, value);
+    case 'objectToArray': return objectToArray(options as ObjectToArrayOptions, value);
     default: throw new Error(`Unknown transformation '${name}'`);
   }
 }
