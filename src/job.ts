@@ -26,10 +26,16 @@ interface RequestConfig {
 	data?: any
 }
 
+interface MergeConfig {
+	requests: RequestConfig[],
+	transformations?: Array<Transformation>
+}
+
 interface InputConfig {
-	request: RequestConfig,
+	request?: RequestConfig,
 	transformations?: Array<Transformation>,
 	contentType?: string,
+	merge?: MergeConfig
 }
 
 interface OutputConfig {
@@ -134,8 +140,8 @@ export class Job {
 			throw(new Error(`Undefined 'outputs' field in job '${name}'`));
 		if(!schedule.cron)
 			throw(new Error(`Undefined 'cron' field in job.${name}.schedule`))
-		if(!input.request || !input.request.url)
-			throw(new Error(`Undefined or invalid 'input.request' configuration in job ${name}`))
+		if(!input.request && !input.merge)
+			throw(new Error(`Undefined or invalid 'input.request' or 'input.merge' configuration in job ${name}`))
 
 		this.input = input;
 		this.outputs = outputs;
@@ -152,39 +158,80 @@ export class Job {
 	async run() {
 		logger.info(`jobs:${this.jobName}`, `Running`);
 		
-		// Fetch the input using the request config
-		const requestConfig: AxiosRequestConfig = {
-			url: this.input.request.url,
-			method: this.input.request.method ?? 'get',
-			headers: this.input.request.headers,
-			data: this.input.request.data
-		};
-		
-		let reply = await axios(requestConfig);
-
+		let data: JobData;
 		let contentType = this.input.contentType;
 
-		if(!contentType) {
-			// Automatically figure out the content type if not specified
-			if(reply.headers['content-type'].toLowerCase().includes("text/html"))
-				contentType = 'html';
-			else if(reply.headers['content-type'].toLowerCase().includes("application/json"))
-				contentType = 'json';
-			else if(reply.headers['content-type'].toLowerCase().includes("text/plain"))
-				contentType = 'text';
-			else if(reply.headers['content-type'].toLowerCase().includes("text/csv"))
-				contentType = 'csv';
-			else {
-				logger.error(`jobs:${this.jobName}`, `Unknown content type '${reply.headers['content-type']}'`)
+		// --- Handle merge option ---
+		if (this.input.merge) {
+			const mergeCfg = this.input.merge;
+			// Run all requests in parallel
+			const responses = await Promise.all(
+				mergeCfg.requests.map(async (req) => {
+					const requestConfig: AxiosRequestConfig = {
+						url: req.url,
+						method: req.method ?? 'get',
+						headers: req.headers,
+						data: req.data
+					};
+					const reply = await axios(requestConfig);
+					let result = reply.data;
+					// Optionally apply merge.transformations
+					if (mergeCfg.transformations && mergeCfg.transformations.length > 0) {
+						result = applyTransforms(`jobs.${this.jobName}.input.merge`, result, mergeCfg.transformations);
+					}
+					return result;
+				})
+			);
+
+			// Check all results are of the same type
+			const firstType = Array.isArray(responses[0]) ? 'array' : typeof responses[0];
+			if (!responses.every(r => (Array.isArray(r) ? 'array' : typeof r) === firstType)) {
+				logger.error(`jobs:${this.jobName}`, "All merged results must be of the same type");
 				return;
 			}
 
-			logger.debug(`jobs:${this.jobName}`, `Detected content type: ${contentType}`);
+			// Merge strategy
+			if (firstType === 'array') {
+				data = ([] as any[]).concat(...responses);
+			} else if (firstType === 'object') {
+				data = Object.assign({}, ...responses);
+			} else {
+				logger.error(`jobs:${this.jobName}`, "Merged results must be arrays or objects");
+				return;
+			}
+		} else {
+			// --- Regular single request ---
+			if (!this.input.request || !this.input.request.url) {
+				logger.error(`jobs:${this.jobName}`, "No request or merge specified in input");
+				return;
+			}
+			const requestConfig: AxiosRequestConfig = {
+				url: this.input.request.url,
+				method: this.input.request.method ?? 'get',
+				headers: this.input.request.headers,
+				data: this.input.request.data
+			};
+			const reply = await axios(requestConfig);
+			data = reply.data;
+
+			if(!contentType) {
+				// Automatically figure out the content type if not specified
+				if(reply.headers['content-type'].toLowerCase().includes("text/html"))
+					contentType = 'html';
+				else if(reply.headers['content-type'].toLowerCase().includes("application/json"))
+					contentType = 'json';
+				else if(reply.headers['content-type'].toLowerCase().includes("text/plain"))
+					contentType = 'text';
+				else if(reply.headers['content-type'].toLowerCase().includes("text/csv"))
+					contentType = 'csv';
+				else {
+					logger.error(`jobs:${this.jobName}`, `Unknown content type '${reply.headers['content-type']}'`)
+					return;
+				}
+				logger.debug(`jobs:${this.jobName}`, `Detected content type: ${contentType}`);
+			}
 		}
 
-		// Get initial data based on content type
-		let data: JobData = reply.data;
-		
 		// Apply input transformations if any
 		if(this.input.transformations && this.input.transformations.length > 0) {
 			data = applyTransforms(`jobs.${this.jobName}.input`, data, this.input.transformations);
