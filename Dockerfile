@@ -5,9 +5,9 @@ WORKDIR	/app
 # run apk --no-cache add bash
 
 # add `/app/node_modules/.bin` to $PATH
-ENV PATH /app/node_modules/.bin:$PATH
+ENV PATH=/app/node_modules/.bin:$PATH
 
-ENV NODE_ENV 'production'
+ENV NODE_ENV='production'
 
 # Install dependencies
 COPY package.json package.json
